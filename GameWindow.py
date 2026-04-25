@@ -1,3 +1,4 @@
+from PyQt6.QtWidgets import QMainWindow
 from ui_game_window import Ui_GameWindow
 from game_map import GameMapView  # promote için import şart
 
