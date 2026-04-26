@@ -1,0 +1,1 @@
+# Oyun kuralları (Hangi bölge kimin, zarlar, hamle doğrulama)

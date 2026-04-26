@@ -1,0 +1,1 @@
+# Sunucunun IP adresiyle bağlantı kuran[cite: 5], veri alıp/gönderen modül

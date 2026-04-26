@@ -14,13 +14,18 @@ class Ui_GameWindow(object):
         GameWindow.setObjectName("GameWindow")
         GameWindow.resize(1200, 700)
         GameWindow.setStyleSheet("background-color: #0a1e46;")
+
         self.centralwidget = QtWidgets.QWidget(parent=GameWindow)
         self.centralwidget.setObjectName("centralwidget")
+
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.mapView = GameMapView(parent=self.centralwidget)
+
+        self.mapContainer = QtWidgets.QWidget(parent=self.centralwidget)
+        self.mapContainer.setObjectName("mapContainer")
+
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
@@ -39,7 +44,6 @@ class Ui_GameWindow(object):
     def retranslateUi(self, GameWindow):
         _translate = QtCore.QCoreApplication.translate
         GameWindow.setWindowTitle(_translate("GameWindow", "Risk — Dünya Haritası"))
-from game_map import GameMapView
 
 
 if __name__ == "__main__":

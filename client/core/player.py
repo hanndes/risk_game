@@ -1,3 +1,4 @@
+# Oyuncu özellikleri (isim, renk, kalan asker sayısı)
 class Player:
     def __init__(self, name):
         self.name = name
