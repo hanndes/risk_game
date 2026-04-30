@@ -1,1 +1,0 @@
-# İki istemciyi (oyuncuyu) bekleyen ve eşleştiren ana sunucu kodu

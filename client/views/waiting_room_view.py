@@ -50,14 +50,12 @@ class WaitingRoomWindow(QMainWindow):
 
     def oyuna_gec(self):
         print("Rakip bulundu, oyuna geçiliyor!")
-        # Karakter resim yollarını ayarlıyoruz
         player1_img = f"assets/images/chars/{self.player.character_image}"
-        player2_img = "assets/images/chars/default_rakip.png" # Şimdilik sahte rakip resmi
+        player2_img = "assets/images/chars/default_rakip.png"
 
-        # Az önce temizlediğimiz GameWindow'u çağırıyoruz!
         self.game_window = GameWindow(
             player_names=(self.player.name, "Gizemli Rakip"),
             image_paths=(player1_img, player2_img)
         )
         self.game_window.show()
-        self.close() # Bekleme odasını kapat
+        self.close()

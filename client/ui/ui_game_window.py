@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'game_window.ui'
+# Form implementation generated from reading ui file 'client/ui/game_window.ui'
 #
 # Created by: PyQt6 UI code generator 6.10.2
 #
@@ -9,48 +9,40 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_GameWindow(object):
-    def setupUi(self, GameWindow):
-        GameWindow.setObjectName("GameWindow")
-        GameWindow.resize(1200, 700)
-        GameWindow.setStyleSheet("background-color: #0a1e46;")
-
-        self.centralwidget = QtWidgets.QWidget(parent=GameWindow)
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(800, 600)
+        self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout.setObjectName("gridLayout")
+        self.graphicsView = UIMap(parent=self.centralwidget)
+        self.graphicsView.setObjectName("graphicsView")
+        self.gridLayout.addWidget(self.graphicsView, 0, 0, 1, 1)
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(parent=MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 33))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(parent=MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout.setSpacing(0)
-        self.verticalLayout.setObjectName("verticalLayout")
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        self.mapContainer = QtWidgets.QWidget(parent=self.centralwidget)
-        self.mapContainer.setObjectName("mapContainer")
-
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.mapView.sizePolicy().hasHeightForWidth())
-        self.mapView.setSizePolicy(sizePolicy)
-        self.mapView.setStyleSheet("border: none; background: transparent;")
-        self.mapView.setDragMode(QtWidgets.QGraphicsView.DragMode.ScrollHandDrag)
-        self.mapView.setRenderHints(QtGui.QPainter.RenderHint.Antialiasing)
-        self.mapView.setObjectName("mapView")
-        self.verticalLayout.addWidget(self.mapView)
-        GameWindow.setCentralWidget(self.centralwidget)
-
-        self.retranslateUi(GameWindow)
-        QtCore.QMetaObject.connectSlotsByName(GameWindow)
-
-    def retranslateUi(self, GameWindow):
+    def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        GameWindow.setWindowTitle(_translate("GameWindow", "Risk — Dünya Haritası"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+from client.ui.ui_map import UIMap
 
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    GameWindow = QtWidgets.QMainWindow()
-    ui = Ui_GameWindow()
-    ui.setupUi(GameWindow)
-    GameWindow.show()
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
     sys.exit(app.exec())
