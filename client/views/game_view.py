@@ -5,7 +5,7 @@ from client.core.player import Player
 
 
 class GameWindow(QMainWindow):
-    def __init__(self, player_obj=None):
+    def __init__(self, player_obj, opp_name, opp_img):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)

@@ -6,13 +6,18 @@ import logging
 from threading import Thread
 from typing import Optional, Callable
 
-from utils.config import setup_logging
+from shared.constants import MessageTypes
+from client.utils.config import setup_logging
 
 setup_logging()
 
 
 class TCPClient:
-    def __init__(self):
+    def __init__(self, player_name, player_char, on_message_received_callback):
+
+        self.player_name = player_name
+        self.player_char = player_char
+        self.on_message_received_callback = on_message_received_callback
         self.listen_thread: Optional[Thread] = None
         self.client_socket: Optional[socket.socket] = None
 
@@ -27,8 +32,18 @@ class TCPClient:
         try:
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             client_socket.connect((server_ip, server_port))
+
             self.client_socket = client_socket
             logging.info(f"Sunucuya bağlanıldı: {server_ip}:{server_port}")
+
+            signup_msg = {
+                "type": MessageTypes.SIGN_UP,
+                "name": self.player_name,
+                "char": self.player_char
+            }
+
+            # pickle.dumps: Veriyi ağdan geçebilecek bytea çevirir
+            self.client_socket.sendall(pickle.dumps(signup_msg))
 
             self.listen_thread = Thread(target=self.message_listen_thread)
             self.listen_thread.daemon = True
@@ -53,6 +68,8 @@ class TCPClient:
                 decoded_message = pickle.loads(message)
                 logging.info(f"Sunucudan mesaj alındı: {decoded_message}")
 
+                if self.on_message_received_callback:
+                    self.on_message_received_callback(decoded_message)
 
             except ConnectionResetError:
                 logging.error("Sunucu bağlantısı beklenmedik şekilde kapandı.")
