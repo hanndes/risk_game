@@ -1,1 +1,84 @@
-# Sunucunun IP adresiyle bağlantı kuran[cite: 5], veri alıp/gönderen modül
+# client/network/tcp_client.py
+
+import socket
+import pickle
+import logging
+from threading import Thread
+from typing import Optional, Callable
+
+from utils.config import setup_logging
+
+setup_logging()
+
+
+class TCPClient:
+    def __init__(self):
+        self.listen_thread: Optional[Thread] = None
+        self.client_socket: Optional[socket.socket] = None
+
+        server_ip, server_port = ("127.0.0.1", 5001)
+        th = Thread(target=self.start_client, args=(server_ip, server_port))
+        th.daemon = True
+        th.start()
+
+
+    def start_client(self, server_ip, server_port):
+        logging.info("İstemci başlatılıyor...")
+        try:
+            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client_socket.connect((server_ip, server_port))
+            self.client_socket = client_socket
+            logging.info(f"Sunucuya bağlanıldı: {server_ip}:{server_port}")
+
+            self.listen_thread = Thread(target=self.message_listen_thread)
+            self.listen_thread.daemon = True
+            self.listen_thread.start()
+
+        except ConnectionRefusedError:
+            logging.error("Sunucuya bağlanılamadı. Sunucunun çalıştığından emin olun.")
+
+    def message_listen_thread(self):
+        if not self.client_socket:
+            return
+
+        logging.info("Mesaj dinleme thread'i başlatıldı.")
+
+        while self.client_socket:
+            try:
+                message = self.client_socket.recv(1024)
+                if not message:
+                    logging.warning("Sunucudan boş mesaj alındı, bağlantı kapanıyor.")
+                    break
+
+                decoded_message = pickle.loads(message)
+                logging.info(f"Sunucudan mesaj alındı: {decoded_message}")
+
+
+            except ConnectionResetError:
+                logging.error("Sunucu bağlantısı beklenmedik şekilde kapandı.")
+                break
+            except EOFError:
+                logging.error("Gelen veri işlenemedi veya eksik (EOFError).")
+                break
+
+        self.close_connection()
+
+    def send_message(self, data: dict):
+        if not self.client_socket:
+            logging.warning("Bağlantı yok, mesaj gönderilemedi.")
+            return
+
+        try:
+            message = pickle.dumps(data)
+            self.client_socket.sendall(message)
+            logging.info(f"Mesaj gönderildi: {data}")
+
+        except ConnectionError as e:
+            logging.error(f"Mesaj gönderilemedi: {e}")
+            self.close_connection()
+
+    def close_connection(self):
+        if self.client_socket:
+            self.client_socket.close()
+            self.client_socket = None
+            logging.info("Sunucu bağlantısı kapatıldı.")

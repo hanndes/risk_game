@@ -12,7 +12,7 @@ class UIMap(QGraphicsView):
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
         self.setRenderHint(QPainter.RenderHint.Antialiasing)
-        self.setBackgroundBrush(QColor("#1a1a1a"))
+        self.setBackgroundBrush(QColor("#0084CF"))
 
         self.off_x = -167.99651
         self.off_y = -118.55507
@@ -44,7 +44,7 @@ class UIMap(QGraphicsView):
                         item = QGraphicsPathItem(qpath)
 
                         item.setPen(QPen(QColor(255, 255, 255, 50), 1))
-                        item.setBrush(QBrush(QColor(46, 204, 113, 100)))
+                        item.setBrush(QBrush(QColor(25, 91, 0, 100)))
                         item.setPos(self.off_x, self.off_y)
                         item.setAcceptHoverEvents(True)
                         item.setToolTip(rid)
@@ -56,12 +56,12 @@ class UIMap(QGraphicsView):
     def mousePressEvent(self, event):
         item = self.itemAt(event.position().toPoint())
         for r in self.regions.values():
-            r.setBrush(QBrush(QColor(46, 204, 113, 100)))
-
+            r.setBrush(QBrush(QColor(0, 0, 0, 0)))
+            self.setBackgroundBrush(QColor("#000000"))
         if isinstance(item, QGraphicsPathItem):
             region_id = [k for k, v in self.regions.items() if v == item][0]
             print(f"\n>>> TIKLANAN ÜLKE: {region_id}")
-            item.setBrush(QBrush(QColor(220, 50, 40, 180)))
+            item.setBrush(QBrush(QColor(255, 255, 255, 255)))
 
         super().mousePressEvent(event)
 
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     win = QMainWindow()
-    win.setWindowTitle("Harita Test Modu")
+    win.setWindowTitle("Sadece Harita")
     win.resize(1000, 700)
 
     map_widget = UIMap()

@@ -67,7 +67,7 @@ class RiskServer:
             if client != sender_socket:
                 try:
                     client.sendall(message)
-                except
+                except:
                     self.close_connection(client)
 
     def close_connection(self, client_socket):

@@ -24,7 +24,7 @@ class WaitingRoomWindow(QMainWindow):
         self.assign_random_character()
 
     def assign_random_character(self):
-        chars_path = "client/assets/images/chars"
+        chars_path = "assets/images/chars"
 
         try:
             char_files = [f for f in os.listdir(chars_path) if f.endswith(('.png', '.jpg', '.jpeg'))]

@@ -1,8 +1,8 @@
-class Player:
-    def __init__(self, name):
-        self.name = name
-        self.id = None
-        self.character_image = None
 
-    def __str__(self):
-        return f"Oyuncu: {self.name} | Karakter: {self.character_image}"
+from network.tcp_client import TCPClient
+class Player:
+    def __init__(self, name: str, client: TCPClient):
+        self.name = name
+        self.armies = 0
+        self.regions = []
+        self.client = client
