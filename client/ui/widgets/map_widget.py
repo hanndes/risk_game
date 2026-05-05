@@ -1,7 +1,9 @@
+import logging
 import os
 import xml.etree.ElementTree as ET
 from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPathItem
 from PyQt6.QtGui import QPainter, QColor, QPen, QBrush
+from PyQt6.QtCore import Qt
 
 from client.utils.map_parser import svg_d_to_qpath
 
@@ -20,12 +22,19 @@ class UIMap(QGraphicsView):
         self.regions = {}
         self.load_precise_map()
 
+        if self.scene.items():
+            self.scene.setSceneRect(self.scene.itemsBoundingRect())
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.fitInView(self.scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+
     def load_precise_map(self):
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.map_path = os.path.join(script_dir, "../assets/images/risk_map.svg")
+        self.map_path = os.path.join(script_dir, "../../assets/images/risk_map.svg")
 
         if not os.path.exists(self.map_path):
-            print(f"HATA: Harita dosyası bulunamadı: {self.map_path}")
+            logging.error(f"HATA: Harita dosyası bulunamadı: {self.map_path}")
             return
 
         tree = ET.parse(self.map_path)
@@ -55,13 +64,13 @@ class UIMap(QGraphicsView):
 
     def mousePressEvent(self, event):
         item = self.itemAt(event.position().toPoint())
+        default_color = QColor(25, 91, 0, 100)
         for r in self.regions.values():
-            r.setBrush(QBrush(QColor(0, 0, 0, 0)))
-            self.setBackgroundBrush(QColor("#000000"))
+            r.setBrush(QBrush(default_color))
         if isinstance(item, QGraphicsPathItem):
             region_id = [k for k, v in self.regions.items() if v == item][0]
-            print(f"\n>>> TIKLANAN ÜLKE: {region_id}")
-            item.setBrush(QBrush(QColor(255, 255, 255, 255)))
+            logging.info(f"\n>>> SEÇİLEN BÖLGE: {region_id}")
+            item.setBrush(QBrush(QColor(255, 255, 255, 200)))
 
         super().mousePressEvent(event)
 

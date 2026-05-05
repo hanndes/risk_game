@@ -3,3 +3,4 @@ class MessageTypes:
     CONNECTION_INFO = "CONN_INFO"  # Sunucu rakipleri eşleştirirken
     GAME_START = "GAME_START"
     ERROR = "ERROR"  # Bir hata oluştuğunda
+    OPPONENT_LEFT = "OPPONENT_LEFT"

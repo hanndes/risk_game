@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'login.ui'
+# Form implementation generated from reading ui file 'client/ui/ui_files/login.ui'
 #
 # Created by: PyQt6 UI code generator 6.10.2
 #
@@ -13,103 +13,130 @@ class Ui_LoginDialog(object):
     def setupUi(self, LoginDialog):
         LoginDialog.setObjectName("LoginDialog")
         LoginDialog.resize(1000, 700)
-        LoginDialog.setStyleSheet("#LoginDialog {\n"
-"    border-image: url(\"./images/risk_login.jpg\") 0 0 0 0 stretch stretch;\n"
-"}")
+        LoginDialog.setStyleSheet("\n"
+"#LoginDialog {\n"
+"    border-image: url(\"../../images/risk_login.jpg\") 0 0 0 0 stretch stretch;\n"
+"}\n"
+"#overlay {\n"
+"    background-color: rgba(0, 0, 0, 0);\n"
+"}\n"
+"#panel {\n"
+"    background-color: rgba(3, 0, 0, 205);\n"
+"    border: 1.5px solid rgba(220, 45, 35, 190);\n"
+"    border-radius: 8px;\n"
+"}\n"
+"#title_label {\n"
+"    color: #ffffff;\n"
+"    background: transparent;\n"
+"    letter-spacing: 12px;\n"
+"}\n"
+"#subtitle_label {\n"
+"    color: rgba(255, 195, 175, 150);\n"
+"    background: transparent;\n"
+"    letter-spacing: 3px;\n"
+"}\n"
+"#divider {\n"
+"    background-color: rgba(220, 50, 40, 85);\n"
+"    border: none;\n"
+"}\n"
+"#label {\n"
+"    color: rgba(255, 185, 165, 150);\n"
+"    background: transparent;\n"
+"    letter-spacing: 2px;\n"
+"}\n"
+"QLineEdit#lineEdit {\n"
+"    background-color: rgba(255, 255, 255, 14);\n"
+"    border: 1px solid rgba(220, 75, 55, 95);\n"
+"    border-radius: 4px;\n"
+"    padding: 8px 14px;\n"
+"    color: rgba(255, 228, 218, 240);\n"
+"    selection-background-color: rgba(200, 40, 30, 160);\n"
+"}\n"
+"QLineEdit#lineEdit:focus {\n"
+"    border: 1px solid rgba(255, 80, 60, 215);\n"
+"    background-color: rgba(255, 255, 255, 24);\n"
+"}\n"
+"QPushButton#pushButton {\n"
+"    background-color: #b81818;\n"
+"    color: #ffffff;\n"
+"    border: 1px solid rgba(255, 95, 75, 135);\n"
+"    border-radius: 4px;\n"
+"    letter-spacing: 4px;\n"
+"}\n"
+"QPushButton#pushButton:hover {\n"
+"    background-color: #d42020;\n"
+"    border: 1px solid rgba(255, 115, 90, 185);\n"
+"}\n"
+"QPushButton#pushButton:pressed {\n"
+"    background-color: #8e1010;\n"
+"    padding-top: 3px;\n"
+"}\n"
+"   ")
         self.verticalLayout_main = QtWidgets.QVBoxLayout(LoginDialog)
         self.verticalLayout_main.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_main.setSpacing(0)
         self.verticalLayout_main.setObjectName("verticalLayout_main")
-        self.frame = QtWidgets.QFrame(parent=LoginDialog)
-        self.frame.setStyleSheet("#frame {\n"
-"    background-color: rgba(0, 0, 0, 100);\n"
-"}")
-        self.frame.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
-        self.frame.setObjectName("frame")
-        self.panel = QtWidgets.QFrame(parent=self.frame)
-        self.panel.setGeometry(QtCore.QRect(340, 180, 320, 340))
-        self.panel.setStyleSheet("#panel {\n"
-"    background-color: rgba(5, 2, 2, 210);\n"
-"    border: 2px solid rgba(220, 50, 40, 210);\n"
-"    border-radius: 6px;\n"
-"}")
+        self.overlay = QtWidgets.QFrame(parent=LoginDialog)
+        self.overlay.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.overlay.setObjectName("overlay")
+        self.panel = QtWidgets.QFrame(parent=self.overlay)
+        self.panel.setGeometry(QtCore.QRect(340, 175, 320, 350))
         self.panel.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         self.panel.setObjectName("panel")
         self.panel_layout = QtWidgets.QVBoxLayout(self.panel)
-        self.panel_layout.setContentsMargins(32, 28, 32, 28)
+        self.panel_layout.setContentsMargins(36, 32, 36, 32)
         self.panel_layout.setSpacing(0)
         self.panel_layout.setObjectName("panel_layout")
         self.title_label = QtWidgets.QLabel(parent=self.panel)
         font = QtGui.QFont()
         font.setFamily("Georgia")
-        font.setPointSize(32)
+        font.setPointSize(34)
         font.setBold(True)
         font.setWeight(75)
         self.title_label.setFont(font)
-        self.title_label.setStyleSheet("color: #ffffff;\n"
-"background: transparent;\n"
-"letter-spacing: 10px;")
         self.title_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.title_label.setObjectName("title_label")
         self.panel_layout.addWidget(self.title_label)
-        spacerItem = QtWidgets.QSpacerItem(20, 4, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(20, 6, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.panel_layout.addItem(spacerItem)
         self.subtitle_label = QtWidgets.QLabel(parent=self.panel)
         font = QtGui.QFont()
         font.setFamily("Andale Mono")
         font.setPointSize(8)
         self.subtitle_label.setFont(font)
-        self.subtitle_label.setStyleSheet("color: rgba(255, 200, 180, 160);\n"
-"background: transparent;\n"
-"letter-spacing: 3px;")
         self.subtitle_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.subtitle_label.setObjectName("subtitle_label")
         self.panel_layout.addWidget(self.subtitle_label)
-        spacerItem1 = QtWidgets.QSpacerItem(20, 16, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem1 = QtWidgets.QSpacerItem(20, 18, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.panel_layout.addItem(spacerItem1)
         self.divider = QtWidgets.QFrame(parent=self.panel)
         self.divider.setMaximumSize(QtCore.QSize(16777215, 1))
-        self.divider.setStyleSheet("background-color: rgba(220, 50, 40, 100); border: none;")
         self.divider.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         self.divider.setObjectName("divider")
         self.panel_layout.addWidget(self.divider)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem2 = QtWidgets.QSpacerItem(20, 22, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.panel_layout.addItem(spacerItem2)
         self.label = QtWidgets.QLabel(parent=self.panel)
         font = QtGui.QFont()
         font.setFamily("Andale Mono")
         font.setPointSize(9)
         self.label.setFont(font)
-        self.label.setStyleSheet("color: rgba(255, 190, 170, 160);\n"
-"background: transparent;\n"
-"letter-spacing: 2px;")
         self.label.setObjectName("label")
         self.panel_layout.addWidget(self.label)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 6, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem3 = QtWidgets.QSpacerItem(20, 8, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.panel_layout.addItem(spacerItem3)
         self.lineEdit = QtWidgets.QLineEdit(parent=self.panel)
-        self.lineEdit.setMinimumSize(QtCore.QSize(0, 42))
+        self.lineEdit.setMinimumSize(QtCore.QSize(0, 44))
         font = QtGui.QFont()
         font.setFamily("Andale Mono")
         font.setPointSize(13)
         self.lineEdit.setFont(font)
-        self.lineEdit.setStyleSheet("QLineEdit {\n"
-"    background-color: rgba(255, 255, 255, 18);\n"
-"    border: 1px solid rgba(220, 80, 60, 110);\n"
-"    border-radius: 4px;\n"
-"    padding: 8px 14px;\n"
-"    color: rgba(255, 230, 220, 240);\n"
-"}\n"
-"QLineEdit:focus {\n"
-"    border: 1px solid rgba(255, 80, 60, 230);\n"
-"    background-color: rgba(255, 255, 255, 28);\n"
-"}")
         self.lineEdit.setObjectName("lineEdit")
         self.panel_layout.addWidget(self.lineEdit)
-        spacerItem4 = QtWidgets.QSpacerItem(20, 16, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem4 = QtWidgets.QSpacerItem(20, 18, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.panel_layout.addItem(spacerItem4)
         self.pushButton = QtWidgets.QPushButton(parent=self.panel)
-        self.pushButton.setMinimumSize(QtCore.QSize(0, 46))
+        self.pushButton.setMinimumSize(QtCore.QSize(0, 48))
         font = QtGui.QFont()
         font.setFamily("Georgia")
         font.setPointSize(12)
@@ -117,25 +144,9 @@ class Ui_LoginDialog(object):
         font.setWeight(75)
         self.pushButton.setFont(font)
         self.pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        self.pushButton.setStyleSheet("QPushButton {\n"
-"    background-color: #c41a1a;\n"
-"    color: #ffffff;\n"
-"    border: 1px solid rgba(255, 100, 80, 150);\n"
-"    border-radius: 4px;\n"
-"    font-weight: bold;\n"
-"    letter-spacing: 3px;\n"
-"}\n"
-"QPushButton:hover {\n"
-"    background-color: #e02020;\n"
-"    border: 1px solid rgba(255, 120, 100, 200);\n"
-"}\n"
-"QPushButton:pressed {\n"
-"    background-color: #991010;\n"
-"    padding-top: 3px;\n"
-"}")
         self.pushButton.setObjectName("pushButton")
         self.panel_layout.addWidget(self.pushButton)
-        self.verticalLayout_main.addWidget(self.frame)
+        self.verticalLayout_main.addWidget(self.overlay)
 
         self.retranslateUi(LoginDialog)
         QtCore.QMetaObject.connectSlotsByName(LoginDialog)
@@ -148,13 +159,3 @@ class Ui_LoginDialog(object):
         self.label.setText(_translate("LoginDialog", "KOMUTAN ADI"))
         self.lineEdit.setPlaceholderText(_translate("LoginDialog", "Adınızı girin..."))
         self.pushButton.setText(_translate("LoginDialog", "SAVAŞA GİR"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    LoginDialog = QtWidgets.QDialog()
-    ui = Ui_LoginDialog()
-    ui.setupUi(LoginDialog)
-    LoginDialog.show()
-    sys.exit(app.exec())

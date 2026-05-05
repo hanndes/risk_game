@@ -1,0 +1,778 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GameWindow</class>
+ <widget class="QMainWindow" name="GameWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1280</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>RISK</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+QMainWindow, QWidget#centralwidget {
+  background-color: #1a0a00;
+}
+QFrame#top_bar {
+  background-color: #2b0d00;
+  border-bottom: 2px solid #8b1a1a;
+}
+QFrame#bottom_bar {
+  background-color: #2b0d00;
+  border-top: 2px solid #8b1a1a;
+}
+QFrame#left_panel {
+  background-color: #1f0800;
+  border: 2px solid #6b1010;
+  border-radius: 6px;
+}
+QFrame#right_panel {
+  background-color: #1f0800;
+  border: 2px solid #6b1010;
+  border-radius: 6px;
+}
+QFrame#map_frame {
+  background-color: #0d0500;
+  border: 2px solid #8b1a1a;
+  border-radius: 4px;
+}
+QLabel#label_game_title {
+  color: #e8c090;
+  font-family: "Andale Mono";
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 4px;
+}
+QLabel#label_turn_indicator {
+  color: #ffffff;
+  background-color: #8b1a1a;
+  font-family: "Andale Mono";
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  padding: 3px 10px;
+  border-radius: 3px;
+}
+QLabel#label_phase {
+  color: #ccaa66;
+  font-family: "Andale Mono";
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+QLabel#label_round_value {
+  color: #e8c090;
+  font-family: "Andale Mono";
+  font-size: 18px;
+  font-weight: bold;
+}
+QLabel[role="section_header"] {
+  color: #c0704a;
+  font-family: "Andale Mono";
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+QLabel#label_player_name {
+  color: #e8c090;
+  font-family: "Andale Mono";
+  font-size: 13px;
+  font-weight: bold;
+}
+QLabel#label_player_icon {
+  color: #ff6644;
+  font-size: 20px;
+}
+QLabel#label_troops_value {
+  color: #ff6644;
+  font-family: "Andale Mono";
+  font-size: 32px;
+  font-weight: bold;
+}
+QLabel#label_territories_value {
+  color: #ff9944;
+  font-family: "Andale Mono";
+  font-size: 22px;
+  font-weight: bold;
+}
+QLabel#label_cards_value {
+  color: #ffcc44;
+  font-family: "Andale Mono";
+  font-size: 22px;
+  font-weight: bold;
+}
+QLabel#label_continents_value {
+  color: #88cc44;
+  font-family: "Andale Mono";
+  font-size: 11px;
+}
+QLabel#label_opponent_name {
+  color: #8090b0;
+  font-family: "Andale Mono";
+  font-size: 13px;
+  font-weight: bold;
+}
+QLabel#label_opponent_icon {
+  color: #4488cc;
+  font-size: 20px;
+}
+QLabel#label_opponent_troops_value {
+  color: #4488cc;
+  font-family: "Andale Mono";
+  font-size: 32px;
+  font-weight: bold;
+}
+QLabel#label_opponent_territories_value {
+  color: #5599dd;
+  font-family: "Andale Mono";
+  font-size: 22px;
+  font-weight: bold;
+}
+QLabel#label_map_placeholder {
+  color: #3a1a0a;
+  font-family: "Andale Mono";
+  font-size: 12px;
+}
+QProgressBar#progress_bar {
+  background-color: #0d0500;
+  border: 1px solid #4a1a0a;
+  border-radius: 3px;
+  color: #e8c090;
+  font-family: "Andale Mono";
+  font-size: 9px;
+  text-align: center;
+}
+QProgressBar#progress_bar::chunk {
+  background-color: qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 #8b1a1a,stop:1 #cc3300);
+  border-radius: 2px;
+}
+QTextEdit#log_box {
+  background-color: #0d0500;
+  color: #aa8866;
+  font-family: "Andale Mono";
+  font-size: 10px;
+  border: 1px solid #4a1a0a;
+  border-radius: 3px;
+}
+QPushButton#btn_reinforce {
+  background-color: #3a1500;
+  color: #ffcc88;
+  font-family: "Andale Mono";
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  border: 1px solid #8b4010;
+  border-radius: 4px;
+  padding: 6px 4px;
+}
+QPushButton#btn_reinforce:hover { background-color: #5a2500; border-color: #cc6010; }
+QPushButton#btn_attack {
+  background-color: #3a0a0a;
+  color: #ff8888;
+  font-family: "Andale Mono";
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  border: 1px solid #8b1010;
+  border-radius: 4px;
+  padding: 6px 4px;
+}
+QPushButton#btn_attack:hover { background-color: #5a1010; border-color: #cc2020; }
+QPushButton#btn_fortify {
+  background-color: #0a1a3a;
+  color: #88aaff;
+  font-family: "Andale Mono";
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  border: 1px solid #102060;
+  border-radius: 4px;
+  padding: 6px 4px;
+}
+QPushButton#btn_fortify:hover { background-color: #102a5a; border-color: #2040cc; }
+QPushButton#btn_end_turn {
+  background-color: #1a1a0a;
+  color: #cccc44;
+  font-family: "Andale Mono";
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  border: 2px solid #888810;
+  border-radius: 4px;
+  padding: 8px 4px;
+}
+QPushButton#btn_end_turn:hover { background-color: #2a2a10; border-color: #cccc20; }
+QPushButton#btn_cards {
+  background-color: #1a0a3a;
+  color: #cc88ff;
+  font-family: "Andale Mono";
+  font-size: 10px;
+  letter-spacing: 1px;
+  border: 1px solid #441060;
+  border-radius: 4px;
+  padding: 4px;
+}
+QLabel#label_status_conn {
+  color: #44cc44;
+  font-family: "Andale Mono";
+  font-size: 10px;
+}
+QLabel#label_status_server {
+  color: #888888;
+  font-family: "Andale Mono";
+  font-size: 10px;
+}
+QLabel#label_status_hint {
+  color: #aa7744;
+  font-family: "Andale Mono";
+  font-size: 10px;
+  font-style: italic;
+}
+   </string>
+  </property>
+
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="main_vbox">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+
+    <!-- ════════════════ TOP BAR ════════════════ -->
+    <item>
+     <widget class="QFrame" name="top_bar">
+      <property name="minimumHeight"><number>50</number></property>
+      <property name="maximumHeight"><number>50</number></property>
+      <layout class="QHBoxLayout" name="top_bar_hbox">
+       <property name="spacing"><number>10</number></property>
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+
+       <item>
+        <widget class="QLabel" name="label_game_title">
+         <property name="text"><string>R I S K</string></property>
+        </widget>
+       </item>
+
+       <item>
+        <spacer name="top_sp_l">
+         <property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property>
+         <property name="sizeType"><enum>QSizePolicy::Policy::Expanding</enum></property>
+         <property name="sizeHint" stdset="0">
+          <size><width>40</width><height>20</height></size>
+         </property>
+        </spacer>
+       </item>
+
+       <!-- Dinamik: SENİN TURUN / RAKİBİN TURU -->
+       <item>
+        <widget class="QLabel" name="label_turn_indicator">
+         <property name="text"><string>SENİN TURUN</string></property>
+         <property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property>
+        </widget>
+       </item>
+
+       <!-- Dinamik: TAKVİYE / SALDIRI / TAHKİMAT -->
+       <item>
+        <widget class="QLabel" name="label_phase">
+         <property name="text"><string>FAZ: TAKVİYE</string></property>
+         <property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property>
+        </widget>
+       </item>
+
+       <item>
+        <spacer name="top_sp_r">
+         <property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property>
+         <property name="sizeType"><enum>QSizePolicy::Policy::Expanding</enum></property>
+         <property name="sizeHint" stdset="0">
+          <size><width>40</width><height>20</height></size>
+         </property>
+        </spacer>
+       </item>
+
+       <item>
+        <widget class="QLabel" name="label_round_header">
+         <property name="text"><string>TUR</string></property>
+         <property name="styleSheet"><string>color:#c0704a; font-family:"Andale Mono"; font-size:10px; letter-spacing:2px;</string></property>
+        </widget>
+       </item>
+
+       <!-- Dinamik: tur numarası -->
+       <item>
+        <widget class="QLabel" name="label_round_value">
+         <property name="text"><string>1</string></property>
+        </widget>
+       </item>
+
+      </layout>
+     </widget>
+    </item>
+
+    <!-- ════════════════ MIDDLE ROW ════════════════ -->
+    <item>
+     <layout class="QHBoxLayout" name="middle_hbox">
+      <property name="spacing"><number>6</number></property>
+      <property name="leftMargin">
+       <number>6</number>
+      </property>
+      <property name="topMargin">
+       <number>6</number>
+      </property>
+      <property name="rightMargin">
+       <number>6</number>
+      </property>
+      <property name="bottomMargin">
+       <number>6</number>
+      </property>
+
+      <!-- ──────── SOL PANEL ──────── -->
+      <item>
+       <widget class="QFrame" name="left_panel">
+        <property name="minimumWidth"><number>200</number></property>
+        <property name="maximumWidth"><number>220</number></property>
+        <layout class="QVBoxLayout" name="left_vbox">
+         <property name="spacing"><number>8</number></property>
+         <property name="leftMargin">
+          <number>10</number>
+         </property>
+         <property name="topMargin">
+          <number>10</number>
+         </property>
+         <property name="rightMargin">
+          <number>10</number>
+         </property>
+         <property name="bottomMargin">
+          <number>10</number>
+         </property>
+
+         <!-- Oyuncu başlık satırı -->
+         <item>
+          <layout class="QHBoxLayout" name="player_header_hbox">
+           <property name="spacing"><number>6</number></property>
+           <item>
+            <widget class="QLabel" name="label_player_icon">
+             <property name="text"><string>⚔</string></property>
+            </widget>
+           </item>
+           <!-- Dinamik: oyuncu adı -->
+           <item>
+            <widget class="QLabel" name="label_player_name">
+             <property name="text"><string>OYUNCU 1</string></property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="ph_sp">
+             <property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property>
+             <property name="sizeType"><enum>QSizePolicy::Policy::Expanding</enum></property>
+             <property name="sizeHint" stdset="0">
+              <size><width>10</width><height>20</height></size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+
+         <item>
+          <widget class="QFrame" name="div1">
+           <property name="frameShape"><enum>QFrame::Shape::HLine</enum></property>
+           <property name="styleSheet"><string>background-color:#4a1a0a;</string></property>
+          </widget>
+         </item>
+
+         <!-- Kalan asker -->
+         <item>
+          <widget class="QLabel" name="label_troops_header">
+           <property name="text"><string>KALAN ASKER</string></property>
+           <property name="styleSheet"><string>color:#c0704a; font-family:"Andale Mono"; font-size:10px; letter-spacing:2px;</string></property>
+          </widget>
+         </item>
+         <!-- Dinamik: kalan asker sayısı -->
+         <item>
+          <widget class="QLabel" name="label_troops_value">
+           <property name="text"><string>12</string></property>
+           <property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property>
+          </widget>
+         </item>
+
+         <item>
+          <widget class="QFrame" name="div2">
+           <property name="frameShape"><enum>QFrame::Shape::HLine</enum></property>
+           <property name="styleSheet"><string>background-color:#4a1a0a;</string></property>
+          </widget>
+         </item>
+
+         <!-- Bölgeler -->
+         <item>
+          <widget class="QLabel" name="label_territories_header">
+           <property name="text"><string>BÖLGELER</string></property>
+           <property name="styleSheet"><string>color:#c0704a; font-family:"Andale Mono"; font-size:10px; letter-spacing:2px;</string></property>
+          </widget>
+         </item>
+         <!-- Dinamik: sahip olunan / toplam bölge -->
+         <item>
+          <widget class="QLabel" name="label_territories_value">
+           <property name="text"><string>14 / 42</string></property>
+           <property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property>
+          </widget>
+         </item>
+         <!-- Dinamik: progress value (0-100) -->
+         <item>
+          <widget class="QProgressBar" name="progress_bar">
+           <property name="value"><number>33</number></property>
+           <property name="textVisible"><bool>false</bool></property>
+          </widget>
+         </item>
+
+         <item>
+          <widget class="QFrame" name="div3">
+           <property name="frameShape"><enum>QFrame::Shape::HLine</enum></property>
+           <property name="styleSheet"><string>background-color:#4a1a0a;</string></property>
+          </widget>
+         </item>
+
+         <!-- Kıtalar -->
+         <item>
+          <widget class="QLabel" name="label_continents_header">
+           <property name="text"><string>KONTROL EDİLEN KITALAR</string></property>
+           <property name="styleSheet"><string>color:#c0704a; font-family:"Andale Mono"; font-size:10px; letter-spacing:2px;</string></property>
+          </widget>
+         </item>
+         <!-- Dinamik: kontrol edilen kıta listesi -->
+         <item>
+          <widget class="QLabel" name="label_continents_value">
+           <property name="text"><string>—</string></property>
+          </widget>
+         </item>
+
+         <item>
+          <widget class="QFrame" name="div4">
+           <property name="frameShape"><enum>QFrame::Shape::HLine</enum></property>
+           <property name="styleSheet"><string>background-color:#4a1a0a;</string></property>
+          </widget>
+         </item>
+
+         <!-- Kartlar -->
+         <item>
+          <widget class="QLabel" name="label_cards_header">
+           <property name="text"><string>ELİMDEKİ KARTLAR</string></property>
+           <property name="styleSheet"><string>color:#c0704a; font-family:"Andale Mono"; font-size:10px; letter-spacing:2px;</string></property>
+          </widget>
+         </item>
+         <!-- Dinamik: kart sayısı -->
+         <item>
+          <widget class="QLabel" name="label_cards_value">
+           <property name="text"><string>0</string></property>
+           <property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_cards">
+           <property name="text"><string>KARTLARI GÖSTER</string></property>
+          </widget>
+         </item>
+
+         <item>
+          <spacer name="left_bottom_sp">
+           <property name="orientation"><enum>Qt::Orientation::Vertical</enum></property>
+           <property name="sizeType"><enum>QSizePolicy::Policy::Expanding</enum></property>
+           <property name="sizeHint" stdset="0">
+            <size><width>20</width><height>40</height></size>
+           </property>
+          </spacer>
+         </item>
+
+        </layout>
+       </widget>
+      </item>
+
+      <!-- ──────── HARİTA ALANI ──────── -->
+      <item>
+       <widget class="QFrame" name="map_frame">
+        <layout class="QVBoxLayout" name="map_vbox">
+         <property name="spacing"><number>0</number></property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <!--
+           Python tarafında SVG haritayı buraya yükle:
+
+           from PyQt6.QtSvgWidgets import QSvgWidget
+           self.svg_map = QSvgWidget("assets/world_map.svg", self.map_frame)
+           self.svg_map.setGeometry(self.map_frame.rect())
+           self.map_frame.resizeEvent = lambda e: self.svg_map.setGeometry(self.map_frame.rect())
+
+           Ya da QGraphicsView + QGraphicsSvgItem kullanabilirsin
+           tıklanabilir bölgeler için.
+         -->
+         <item>
+          <widget class="QLabel" name="label_map_placeholder">
+           <property name="text"><string>[ SVG HARİTA — Python tarafında QSvgWidget ile yükle ]</string></property>
+           <property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+      <!-- ──────── SAĞ PANEL ──────── -->
+      <item>
+       <widget class="QFrame" name="right_panel">
+        <property name="minimumWidth"><number>200</number></property>
+        <property name="maximumWidth"><number>220</number></property>
+        <layout class="QVBoxLayout" name="right_vbox">
+         <property name="spacing"><number>8</number></property>
+         <property name="leftMargin">
+          <number>10</number>
+         </property>
+         <property name="topMargin">
+          <number>10</number>
+         </property>
+         <property name="rightMargin">
+          <number>10</number>
+         </property>
+         <property name="bottomMargin">
+          <number>10</number>
+         </property>
+
+         <!-- Rakip başlık satırı -->
+         <item>
+          <layout class="QHBoxLayout" name="opponent_header_hbox">
+           <property name="spacing"><number>6</number></property>
+           <item>
+            <widget class="QLabel" name="label_opponent_icon">
+             <property name="text"><string>🛡</string></property>
+            </widget>
+           </item>
+           <!-- Dinamik: rakip adı -->
+           <item>
+            <widget class="QLabel" name="label_opponent_name">
+             <property name="text"><string>RAKİP BEKLENİYOR</string></property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="oh_sp">
+             <property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property>
+             <property name="sizeType"><enum>QSizePolicy::Policy::Expanding</enum></property>
+             <property name="sizeHint" stdset="0">
+              <size><width>10</width><height>20</height></size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+
+         <item>
+          <widget class="QFrame" name="div5">
+           <property name="frameShape"><enum>QFrame::Shape::HLine</enum></property>
+           <property name="styleSheet"><string>background-color:#4a1a0a;</string></property>
+          </widget>
+         </item>
+
+         <!-- Rakip asker -->
+         <item>
+          <widget class="QLabel" name="label_opp_troops_header">
+           <property name="text"><string>RAKİP ASKERİ</string></property>
+           <property name="styleSheet"><string>color:#c0704a; font-family:"Andale Mono"; font-size:10px; letter-spacing:2px;</string></property>
+          </widget>
+         </item>
+         <!-- Dinamik: rakip toplam asker -->
+         <item>
+          <widget class="QLabel" name="label_opponent_troops_value">
+           <property name="text"><string>?</string></property>
+           <property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property>
+          </widget>
+         </item>
+
+         <item>
+          <widget class="QFrame" name="div6">
+           <property name="frameShape"><enum>QFrame::Shape::HLine</enum></property>
+           <property name="styleSheet"><string>background-color:#4a1a0a;</string></property>
+          </widget>
+         </item>
+
+         <!-- Rakip bölgeler -->
+         <item>
+          <widget class="QLabel" name="label_opp_territories_header">
+           <property name="text"><string>RAKİP BÖLGELERİ</string></property>
+           <property name="styleSheet"><string>color:#c0704a; font-family:"Andale Mono"; font-size:10px; letter-spacing:2px;</string></property>
+          </widget>
+         </item>
+         <!-- Dinamik: rakip bölge sayısı -->
+         <item>
+          <widget class="QLabel" name="label_opponent_territories_value">
+           <property name="text"><string>? / 42</string></property>
+           <property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property>
+          </widget>
+         </item>
+
+         <item>
+          <widget class="QFrame" name="div7">
+           <property name="frameShape"><enum>QFrame::Shape::HLine</enum></property>
+           <property name="styleSheet"><string>background-color:#4a1a0a;</string></property>
+          </widget>
+         </item>
+
+         <!-- Aksiyon butonları -->
+         <item>
+          <widget class="QLabel" name="label_actions_header">
+           <property name="text"><string>AKSİYONLAR</string></property>
+           <property name="styleSheet"><string>color:#c0704a; font-family:"Andale Mono"; font-size:10px; letter-spacing:2px;</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_reinforce">
+           <property name="text"><string>TAKVİYE GÖNDER</string></property>
+           <property name="minimumHeight"><number>36</number></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_attack">
+           <property name="text"><string>SALDIRI BAŞLAT</string></property>
+           <property name="minimumHeight"><number>36</number></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_fortify">
+           <property name="text"><string>KUVVETLERİ TAŞI</string></property>
+           <property name="minimumHeight"><number>36</number></property>
+          </widget>
+         </item>
+
+         <item>
+          <widget class="QFrame" name="div8">
+           <property name="frameShape"><enum>QFrame::Shape::HLine</enum></property>
+           <property name="styleSheet"><string>background-color:#4a1a0a;</string></property>
+          </widget>
+         </item>
+
+         <!-- Oyun logu -->
+         <item>
+          <widget class="QLabel" name="label_log_header">
+           <property name="text"><string>OYUN LOGU</string></property>
+           <property name="styleSheet"><string>color:#c0704a; font-family:"Andale Mono"; font-size:10px; letter-spacing:2px;</string></property>
+          </widget>
+         </item>
+         <!-- Dinamik: append ile log satırı ekle -->
+         <item>
+          <widget class="QTextEdit" name="log_box">
+           <property name="readOnly"><bool>true</bool></property>
+           <property name="minimumHeight"><number>120</number></property>
+          </widget>
+         </item>
+
+         <item>
+          <spacer name="right_mid_sp">
+           <property name="orientation"><enum>Qt::Orientation::Vertical</enum></property>
+           <property name="sizeType"><enum>QSizePolicy::Policy::Expanding</enum></property>
+           <property name="sizeHint" stdset="0">
+            <size><width>20</width><height>10</height></size>
+           </property>
+          </spacer>
+         </item>
+
+         <!-- Turu bitir -->
+         <item>
+          <widget class="QPushButton" name="btn_end_turn">
+           <property name="text"><string>TURU BİTİR ▶</string></property>
+           <property name="minimumHeight"><number>44</number></property>
+          </widget>
+         </item>
+
+        </layout>
+       </widget>
+      </item>
+
+     </layout>
+    </item>
+
+    <!-- ════════════════ BOTTOM BAR ════════════════ -->
+    <item>
+     <widget class="QFrame" name="bottom_bar">
+      <property name="minimumHeight"><number>30</number></property>
+      <property name="maximumHeight"><number>30</number></property>
+      <layout class="QHBoxLayout" name="bottom_hbox">
+       <property name="spacing"><number>16</number></property>
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
+
+       <!-- Dinamik: bağlantı durumu rengi/metni -->
+       <item>
+        <widget class="QLabel" name="label_status_conn">
+         <property name="text"><string>● BAĞLI</string></property>
+        </widget>
+       </item>
+       <!-- Dinamik: sunucu IP -->
+       <item>
+        <widget class="QLabel" name="label_status_server">
+         <property name="text"><string>SUNUCU: —</string></property>
+        </widget>
+       </item>
+
+       <item>
+        <spacer name="bottom_sp">
+         <property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property>
+         <property name="sizeType"><enum>QSizePolicy::Policy::Expanding</enum></property>
+         <property name="sizeHint" stdset="0">
+          <size><width>40</width><height>20</height></size>
+         </property>
+        </spacer>
+       </item>
+
+       <!-- Dinamik: yardım metni -->
+       <item>
+        <widget class="QLabel" name="label_status_hint">
+         <property name="text"><string>Bölge seçmek için haritaya tıkla</string></property>
+        </widget>
+       </item>
+
+      </layout>
+     </widget>
+    </item>
+
+   </layout>
+  </widget>
+ </widget>
+</ui>

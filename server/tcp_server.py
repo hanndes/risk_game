@@ -1,6 +1,8 @@
 import socket
 import pickle
 import logging
+from datetime import time
+
 from config import setup_logging
 from threading import Thread
 from shared.constants import MessageTypes
@@ -21,11 +23,11 @@ class RiskServer:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((server_ip, server_port))
         self.server_socket.listen()
-        logging.info(f"Risk Sunucusu {server_port} portunda hazır.")
+        logging.info(f"[SERVER] Risk Sunucusu {server_port} portunda hazır.")
         self.wait_connections()
 
     def wait_connections(self):
-        logging.info("Oyuncuların bağlanması bekleniyor...")
+        logging.info("[SERVER] Oyuncuların bağlanması bekleniyor...")
 
         # 2 kişi bağlanana kadar bekleme döngüsü içerisinde
         while len(self.clients) < 2:
@@ -33,6 +35,8 @@ class RiskServer:
 
             try:
                 raw_identity = client_socket.recv(1024)
+                if not raw_identity: continue
+
                 identity = pickle.loads(raw_identity) # {type: "SIGN_UP", name: "Ceyda", char: "..."}
 
                 player_data = {
@@ -42,21 +46,24 @@ class RiskServer:
                 }
                 self.clients.append(player_data)
                 player_id = len(self.clients)
-                logging.info(f"Oyuncu {player_id} ({player_data['name']}) bağlandı.")
+                logging.info(f"[SERVER] Oyuncu {player_id} ({player_data['name']}) bağlandı.")
 
                 listen_thread = Thread(target=self.message_listen_thread, args=(client_socket, player_id))
                 listen_thread.daemon = True
                 listen_thread.start()
 
+                if len(self.clients) == 2:
+                    logging.info("[SERVER] İki oyuncu da hazır. Eşleştirme yapılıyor...")
+                    self.match_player()
+                    break # Döngüden çık ki artık yeni bağlantı aramasın.
+
             except Exception as e:
-                logging.error(f"Kayıt hatası: {e}")
+                logging.error(f"[SERVER] Kayıt hatası: {e}")
                 continue
 
-            if len(self.clients) == 2:
-                self.match_player()
 
     def message_listen_thread(self, client_socket, player_id):
-        logging.info(f"Oyuncu {player_id} dinleniyor...")
+        logging.info(f"[SERVER] Oyuncu {player_id} dinleniyor...")
         while True:
             try:
                 message = client_socket.recv(1024)
@@ -64,16 +71,16 @@ class RiskServer:
                     break
                 # alınan ham byte yığınını pickle ile python nesnesine çevirir
                 decoded_message = pickle.loads(message)
-                logging.info(f"Oyuncu {player_id} hamlesi alındı: {decoded_message}")
+                logging.info(f"[SERVER] Oyuncu {player_id} hamlesi alındı: {decoded_message}")
 
                 self.broadcast_message(message, sender_socket=client_socket)
 
             except ConnectionResetError:
-                logging.error(f"Oyuncu {player_id} bağlantısı koptu.")
+                logging.error(f"[SERVER] Oyuncu {player_id} bağlantısı koptu.")
                 self.close_connection(client_socket)
                 return
             except EOFError:
-                logging.error(f"Oyuncu {player_id} verisi işlenemedi veya eksik.")
+                logging.error(f"[SERVER] Oyuncu {player_id} verisi işlenemedi veya eksik.")
                 self.close_connection(client_socket)
                 return
 
@@ -95,7 +102,7 @@ class RiskServer:
         p1["socket"].sendall(pickle.dumps(start_msg))
         p2["socket"].sendall(pickle.dumps(start_msg))
 
-        logging.info("Oyuncular eşleştirildi ve oyun başlatılıyor.")
+        logging.info("[SERVER] Oyuncular eşleştirildi ve oyun başlatılıyor.")
 
     def broadcast_message(self, message, sender_socket):
         for client in self.clients:
@@ -106,12 +113,55 @@ class RiskServer:
                     self.close_connection(client)
 
     def close_connection(self, client_socket):
-        if client_socket in self.clients:
-            self.clients.remove(client_socket)
-            client_socket.close()
+        # Sadece bağlantısı kopan VEYA çıkan oyuncunun soketini kapatır
+        # Projede sunucu AWS'de çalışacağı için oyuncular gitse bile sunucu kapanmamalı,
+        # yeni oyunlar için ayakta kalmalıdır
 
-        if len(self.clients) == 0 and self.server_socket:
+        leaving_player = None
+
+        for client in self.clients:
+            if client["socket"] == client_socket:
+                leaving_player = client
+                break
+
+        if leaving_player:
+            logging.info(f"[SERVER] {leaving_player['name']} ayrıldı.")
+            self.clients.remove(leaving_player)  # RAM'den sil
+            client_socket.close() # Sadece bu oyuncunun soketini kapat
+
+        # Eğer geride 1 kişi kaldıysa, ona oyunun bittiğini haber ver
+        if len(self.clients) == 1:
+            try:
+                remaining_player = self.clients[0]["socket"]
+                info = {"type": MessageTypes.OPPONENT_LEFT}
+                remaining_player.sendall(pickle.dumps(info))
+            except:
+                pass
+
+        # Herkes gittiyse lobiyi sıfırla
+        # Sunucu AWS'de kapanmadan durmalı, yeni oyunculara temiz sayfa açmalı
+        if len(self.clients) == 0:
+            logging.info("[SERVER] Lobi tamamen boşaldı. Oyun verileri sıfırlanıyor.")
+            self.reset_game_state()
+
+    def reset_game_state(self):
+        # Harita sahipliğini ve asker sayılarını başlangıç haline getirir
+        # self.territories = {} vb.
+        pass
+
+    def stop(self):
+        # Ana sistem kapatılmak istendiğinde her şeyi temizler
+        logging.info("[SERVER] Sunucu tamamen kapatılıyor...")
+
+        # Önce içeride kalan oyuncuları at ve soketlerini kapat
+        for client in self.clients:
+            try:
+                client["socket"].close()
+            except:
+                pass
+        self.clients.clear()
+
+        if self.server_socket:
             self.server_socket.close()
             self.server_socket = None
-            logging.info("Tüm oyuncular ayrıldı, sunucu kapatıldı.")
-
+            logging.info("[SERVER] Ana soket başarıyla kapatıldı.")

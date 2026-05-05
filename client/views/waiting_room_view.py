@@ -5,7 +5,7 @@ import logging
 from PyQt6.QtWidgets import QMainWindow
 from PyQt6.QtGui import QPixmap
 
-from client.ui.ui_waiting_room import Ui_MainWindow as Ui_WaitingRoom
+from ui.py_ui.ui_waiting_room import Ui_MainWindow as Ui_WaitingRoom
 
 from client.views.game_view import GameWindow
 from shared.constants import MessageTypes
@@ -80,8 +80,6 @@ class WaitingRoomWindow(QMainWindow):
 
     def play_game(self, opponent_name, opponent_img_path):
         print(f"Rakip {opponent_name} bulundu, oyuna geçiliyor!")
-
-        player1_img = f"assets/images/chars/{self.player.character_image}"
 
         self.game_window = GameWindow(
             player_obj=self.player,
