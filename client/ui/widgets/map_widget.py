@@ -4,6 +4,8 @@ import xml.etree.ElementTree as ET
 from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPathItem
 from PyQt6.QtGui import QPainter, QColor, QPen, QBrush
 from PyQt6.QtCore import Qt
+from shared.constants import REGION_NEIGHBORS
+from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPathItem, QGraphicsTextItem
 
 from client.utils.map_parser import svg_d_to_qpath
 
@@ -24,6 +26,10 @@ class UIMap(QGraphicsView):
 
         if self.scene.items():
             self.scene.setSceneRect(self.scene.itemsBoundingRect())
+
+        self.regions = {}
+        self.troop_texts = {}
+        self.load_precise_map()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -62,6 +68,42 @@ class UIMap(QGraphicsView):
                         self.regions[rid] = item
                 break
 
+    def update_region_ui(self, region_id, owner, troops):
+        if region_id not in self.regions:
+            logging.warning(f"Bölge bulunamadı: {region_id}")
+            return
+
+        item = self.regions[region_id]
+
+        if owner == "player1":
+            color = QColor(200, 0, 0, 150)
+        elif owner == "player2":
+            color = QColor(0, 0, 200, 150)
+        else:
+            color = QColor(25, 91, 0, 100)
+
+        item.setBrush(QBrush(color))
+
+        if region_id not in self.troop_texts:
+            text_item = QGraphicsTextItem(str(troops))
+            text_item.setDefaultTextColor(Qt.GlobalColor.white)
+
+            font = text_item.font()
+            font.setBold(True)
+            font.setPointSize(12)
+            text_item.setFont(font)
+
+            self.scene.addItem(text_item)
+            self.troop_texts[region_id] = text_item
+
+            center = item.sceneBoundingRect().center()
+            text_item.setPos(
+                center.x() - text_item.boundingRect().width() / 2,
+                center.y() - text_item.boundingRect().height() / 2
+            )
+        else:
+            self.troop_texts[region_id].setPlainText(str(troops))
+
     def mousePressEvent(self, event):
         item = self.itemAt(event.position().toPoint())
         default_color = QColor(25, 91, 0, 100)
@@ -78,6 +120,26 @@ class UIMap(QGraphicsView):
         f = 1.2 if event.angleDelta().y() > 0 else 0.8
         self.scale(f, f)
 
+    def on_region_clicked(self, region_id):
+
+        if region_id not in REGION_NEIGHBORS:
+            return
+
+        neighbors = REGION_NEIGHBORS.get(region_id, [])
+
+        focus_list = neighbors + [region_id]
+
+        for current_region_id, path_item in self.region_items.items():
+            if current_region_id in focus_list:
+                path_item.setOpacity(1.0)
+
+                # İsteğe bağlı ekstra şıklık: Tıklanan hedefin veya komşuların
+                # dış çizgisini (stroke) hafifçe belirginleştirebilirsin.
+                # path_item.setPen(QtGui.QPen(QtGui.QColor("white"), 2))
+            else:
+                path_item.setOpacity(0.3)
+                # Dış çizgisini normale döndür
+                # path_item.setPen(QtGui.QPen(QtGui.QColor("black"), 1))
 
 if __name__ == "__main__":
     import sys

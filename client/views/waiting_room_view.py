@@ -6,8 +6,6 @@ from PyQt6.QtWidgets import QMainWindow
 from PyQt6.QtGui import QPixmap
 
 from ui.py_ui.ui_waiting_room import Ui_MainWindow as Ui_WaitingRoom
-
-from client.views.game_view import GameWindow
 from shared.constants import MessageTypes
 
 from PyQt6.QtCore import pyqtSignal
@@ -23,35 +21,25 @@ class WaitingRoomWindow(QMainWindow):
 
         self.player = player_obj
 
-        self.trigger_game_start.connect(self.play_game)
-
         self.ui.gamer1_name.setText(self.player.name)
         self.ui.gamer2_name.setText("Rakip Aranıyor...")
-
         self.ui.progressBar.setMinimum(0)
         self.ui.progressBar.setMaximum(0)
 
         self.assign_random_character()
 
-    def update_ui(self, data: dict):
-        msg_type = data.get("type")
+    def update_opponent_info(self, data: dict):
+        opp_name = data.get("opponent_name")
+        opp_char = data.get("opponent_char")
 
-        if msg_type == "CONN_INFO":
+        self.ui.gamer2_name.setText(opp_name)
+        opp_img_path = f"assets/images/chars/{opp_char}"
 
-            self.opp_name = data.get("opponent_name")
-            self.opp_img_path = f"assets/images/chars/{data.get('opponent_char')}"
+        if os.path.exists(opp_img_path):
+            self.ui.gamer2_icon.setPixmap(QPixmap(opp_img_path))
+            self.ui.gamer2_icon.setScaledContents(True)
 
-            self.ui.gamer2_name.setText(self.opp_name)
-            if os.path.exists(self.opp_img_path):
-                self.ui.gamer2_icon.setPixmap(QPixmap(self.opp_img_path))
-                self.ui.gamer2_icon.setScaledContents(True)
-
-            logging.info(f"Rakip bilgileri alındı: {self.opp_name}")
-
-        elif msg_type == MessageTypes.GAME_START:
-            opp_name = getattr(self, 'opp_name', "Rakip")
-            opp_path = getattr(self, 'opp_img_path', "assets/images/chars/default.png")
-            self.trigger_game_start.emit(opp_name, opp_path)
+        logging.info(f"Bekleme Odası: Rakip {opp_name} bilgileri ekrana basıldı.")
 
     def assign_random_character(self):
         chars_path = "assets/images/chars"
@@ -77,14 +65,3 @@ class WaitingRoomWindow(QMainWindow):
 
         except FileNotFoundError:
             print(f"HATA: Klasör yolu bulunamadı: {chars_path}")
-
-    def play_game(self, opponent_name, opponent_img_path):
-        print(f"Rakip {opponent_name} bulundu, oyuna geçiliyor!")
-
-        self.game_window = GameWindow(
-            player_obj=self.player,
-            opp_name=opponent_name,
-            opp_img=opponent_img_path
-        )
-        self.game_window.show()
-        self.close()

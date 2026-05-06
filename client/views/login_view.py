@@ -4,8 +4,12 @@ from ui.py_ui.ui_login import Ui_LoginDialog
 from client.views.waiting_room_view import WaitingRoomWindow
 from client.core.player import Player
 from client.network.tcp_client import TCPClient
+from PyQt6.QtCore import pyqtSignal
 
 class LoginWindow(QDialog):
+
+    login_success = pyqtSignal(object)
+
     def __init__(self):
         super().__init__()
         self.ui = Ui_LoginDialog()
@@ -19,15 +23,13 @@ class LoginWindow(QDialog):
         if player_name:
             self.player = Player(player_name)
 
-            self.waiting_room = WaitingRoomWindow(self.player)
-
             self.client = TCPClient(
                 player_name=self.player.name,
-                player_char=self.player.character_image,
-                on_message_received_callback=self.waiting_room.update_ui
+                player_char=self.player.character_image
             )
 
             self.player.client = self.client
 
-            self.waiting_room.show()
+            self.login_success.emit(self.player)
+
             self.close()
