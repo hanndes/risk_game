@@ -21,7 +21,7 @@ class LoginWindow(QDialog):
         player_name = self.ui.lineEdit.text().strip()
 
         if player_name:
-            self.player = Player(player_name)
+            self.player = Player(name=player_name)
 
             self.client = TCPClient(
                 player_name=self.player.name,

@@ -34,35 +34,38 @@ class RiskServer:
 
         # 2 kişi bağlanana kadar bekleme döngüsü içerisinde
         while len(self.clients) < 2:
-            client_socket, client_address = self.server_socket.accept()
-
             try:
-                raw_identity = client_socket.recv(1024)
-                if not raw_identity: continue
+                client_socket, client_address = self.server_socket.accept()
 
-                identity = pickle.loads(raw_identity) # {type: "SIGN_UP", name: "Ceyda", char: "..."}
+                try:
+                    raw_identity = client_socket.recv(1024)
+                    if not raw_identity: continue
 
-                player_data = {
-                    "socket": client_socket,
-                    "name": identity["name"],
-                    "char": identity["char"]
-                }
-                self.clients.append(player_data)
-                player_id = len(self.clients)
-                logging.info(f"Oyuncu {player_id} ({player_data['name']}) bağlandı.")
+                    identity = pickle.loads(raw_identity) # {type: "SIGN_UP", name: "Ceyda", char: "..."}
 
-                listen_thread = Thread(target=self.message_listen_thread, args=(client_socket, player_id))
-                listen_thread.daemon = True
-                listen_thread.start()
+                    player_data = {
+                        "socket": client_socket,
+                        "name": identity["name"],
+                        "char": identity["char"]
+                    }
+                    self.clients.append(player_data)
+                    player_id = f"player{len(self.clients)}"
+                    logging.info(f"Oyuncu {player_id} ({player_data['name']}) bağlandı.")
 
-                if len(self.clients) == 2:
-                    logging.info("İki oyuncu da hazır. Eşleştirme yapılıyor...")
-                    self.match_player()
-                    break # Döngüden çık ki artık yeni bağlantı aramasın.
+                    listen_thread = Thread(target=self.message_listen_thread, args=(client_socket, player_id))
+                    listen_thread.daemon = True
+                    listen_thread.start()
 
-            except Exception as e:
-                logging.error(f"Kayıt hatası: {e}")
-                continue
+                    if len(self.clients) == 2:
+                        logging.info("İki oyuncu da hazır. Eşleştirme yapılıyor...")
+                        self.match_player()
+                        break # Döngüden çık ki artık yeni bağlantı aramasın.
+
+                except Exception as e:
+                    logging.error(f"Kayıt hatası: {e}")
+                    continue
+            except OSError:
+                break
 
 
     def message_listen_thread(self, client_socket, player_id):
@@ -84,8 +87,6 @@ class RiskServer:
                     error_msg = {"type": "ERROR", "message": msg}
                     client_socket.sendall(pickle.dumps(error_msg))
 
-                self.broadcast_message(message, sender_socket=client_socket)
-
             except ConnectionResetError:
                 logging.error(f"Oyuncu {player_id} bağlantısı koptu.")
                 self.close_connection(client_socket)
@@ -101,13 +102,23 @@ class RiskServer:
 
         p1, p2 = self.clients[0], self.clients[1]
 
-        for sender, opponent in [(p1, p2), (p2, p1)]:
-            info = {
-                "type": MessageTypes.CONNECTION_INFO,
-                "opponent_name": opponent['name'],
-                "opponent_char": opponent['char']
-            }
-            sender["socket"].sendall(pickle.dumps(info))
+        ids = ["player1", "player2"]
+
+        info_p1 = {
+            "type": MessageTypes.CONNECTION_INFO,
+            "assigned_id": "player1",
+            "opponent_name": p2['name'],
+            "opponent_char": p2['char']
+        }
+        p1["socket"].sendall(pickle.dumps(info_p1))
+
+        info_p2 = {
+            "type": MessageTypes.CONNECTION_INFO,
+            "assigned_id": "player2",
+            "opponent_name": p1['name'],
+            "opponent_char": p1['char']
+        }
+        p2["socket"].sendall(pickle.dumps(info_p2))
 
         start_msg = {"type": MessageTypes.GAME_START}
         p1["socket"].sendall(pickle.dumps(start_msg))

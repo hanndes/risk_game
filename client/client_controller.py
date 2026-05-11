@@ -36,6 +36,9 @@ class ClientController:
         if isinstance(data, dict):
             msg_type = data.get("type")
             if msg_type == "CONN_INFO":
+                assigned_id = data.get("assigned_id")
+                if assigned_id:
+                    self.player.id = assigned_id
                 self.opp_name = data.get("opponent_name")
                 self.opp_char = data.get("opponent_char")
                 if self.waiting_room:

@@ -4,6 +4,8 @@ import xml.etree.ElementTree as ET
 from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPathItem
 from PyQt6.QtGui import QPainter, QColor, QPen, QBrush
 from PyQt6.QtCore import Qt
+from PyQt6.uic.properties import QtGui
+
 from shared.constants import REGION_NEIGHBORS
 from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPathItem, QGraphicsTextItem
 
@@ -76,13 +78,19 @@ class UIMap(QGraphicsView):
         item = self.regions[region_id]
 
         if owner == "player1":
-            color = QColor(200, 0, 0, 150)
-        elif owner == "player2":
             color = QColor(0, 0, 200, 150)
+        elif owner == "player2":
+            color = QColor(200, 0, 0, 150)
         else:
             color = QColor(25, 91, 0, 100)
 
-        item.setBrush(QBrush(color))
+        item.base_color = color
+
+        # Eğer bölge o an seçiliyse beyaz kalsın, değilse kendi rengiyle boyansın
+        if getattr(self, 'selected_region', None) == region_id:
+            item.setBrush(QBrush(QColor(255, 255, 255, 200)))
+        else:
+            item.setBrush(QBrush(color))
 
         if region_id not in self.troop_texts:
             text_item = QGraphicsTextItem(str(troops))
@@ -106,13 +114,23 @@ class UIMap(QGraphicsView):
 
     def mousePressEvent(self, event):
         item = self.itemAt(event.position().toPoint())
-        default_color = QColor(25, 91, 0, 100)
+
         for r in self.regions.values():
-            r.setBrush(QBrush(default_color))
+            if hasattr(r, 'base_color'):
+                r.setBrush(QBrush(r.base_color))
+            else:
+                r.setBrush(QBrush(QColor(25, 91, 0, 100)))
+
         if isinstance(item, QGraphicsPathItem):
             region_id = [k for k, v in self.regions.items() if v == item][0]
             logging.info(f"\n>>> SEÇİLEN BÖLGE: {region_id}")
+
+            self.selected_region = region_id
+
             item.setBrush(QBrush(QColor(255, 255, 255, 200)))
+
+        else:
+            self.selected_region = None
 
         super().mousePressEvent(event)
 
@@ -132,14 +150,10 @@ class UIMap(QGraphicsView):
         for current_region_id, path_item in self.region_items.items():
             if current_region_id in focus_list:
                 path_item.setOpacity(1.0)
-
-                # İsteğe bağlı ekstra şıklık: Tıklanan hedefin veya komşuların
-                # dış çizgisini (stroke) hafifçe belirginleştirebilirsin.
-                # path_item.setPen(QtGui.QPen(QtGui.QColor("white"), 2))
+                path_item.setPen(QtGui.QPen(QtGui.QColor("white"), 2))
             else:
                 path_item.setOpacity(0.3)
-                # Dış çizgisini normale döndür
-                # path_item.setPen(QtGui.QPen(QtGui.QColor("black"), 1))
+                path_item.setPen(QtGui.QPen(QtGui.QColor("black"), 1))
 
 if __name__ == "__main__":
     import sys

@@ -60,17 +60,18 @@ class RiskGameLogic:
 
     def _handle_draft(self, player_id, data):
         region = data["region"]
+        amount = data.get("amount", 1)
 
         if self.state.regions[region]["owner"] != player_id:
             return False, "Sadece kendi bölgelerinize asker yerleştirebilirsiniz."
 
-        if self.state.unplaced_troops[player_id] <= 0:
-            return False, "Yerleştirilecek yedek askeriniz kalmadı."
+        if self.state.unplaced_troops[player_id] < amount:
+            return False, f"Yeterli yedek askeriniz yok. Kalan: {self.state.unplaced_troops[player_id]}"
 
-        self.state.regions[region]["troops"] += 1
-        self.state.unplaced_troops[player_id] -= 1
+        self.state.regions[region]["troops"] += amount
+        self.state.unplaced_troops[player_id] -= amount
 
-        self.state.last_log = f"{player_id}, {region} bölgesine 1 asker takviye etti."
+        self.state.last_log = f"{player_id}, {region} bölgesine {amount} asker takviye etti."
         return True, "Takviye başarılı."
 
     def _handle_attack(self, data):
