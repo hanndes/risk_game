@@ -82,6 +82,8 @@ class RiskServer:
                 success, msg = self.game_logic.process_action(player_id, decoded_message)
 
                 if success:
+                    if isinstance(msg, dict):
+                        self.broadcast_message(msg)
                     self.broadcast_message(self.game_logic.state)
                 else:
                     error_msg = {"type": "ERROR", "message": msg}

@@ -1,14 +1,11 @@
 import logging
 import os
 import xml.etree.ElementTree as ET
-from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPathItem
+from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPathItem, QGraphicsTextItem
 from PyQt6.QtGui import QPainter, QColor, QPen, QBrush
 from PyQt6.QtCore import Qt
-from PyQt6.uic.properties import QtGui
 
 from shared.constants import REGION_NEIGHBORS
-from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPathItem, QGraphicsTextItem
-
 from client.utils.map_parser import svg_d_to_qpath
 
 
@@ -116,6 +113,8 @@ class UIMap(QGraphicsView):
         item = self.itemAt(event.position().toPoint())
 
         for r in self.regions.values():
+            r.setOpacity(1.0)
+            r.setPen(QPen(QColor(255, 255, 255, 50), 1))
             if hasattr(r, 'base_color'):
                 r.setBrush(QBrush(r.base_color))
             else:
@@ -123,50 +122,75 @@ class UIMap(QGraphicsView):
 
         if isinstance(item, QGraphicsPathItem):
             region_id = [k for k, v in self.regions.items() if v == item][0]
-            logging.info(f"\n>>> SEÇİLEN BÖLGE: {region_id}")
+            logging.info(f"\n>>> TIKLANAN BÖLGE: {region_id}")
 
-            self.selected_region = region_id
+            window = self.window()
 
-            item.setBrush(QBrush(QColor(255, 255, 255, 200)))
+            if hasattr(window, 'current_state') and getattr(window, 'current_state', None):
+                state = window.current_state
+                my_id = window.my_player_id
+                phase = state.phase
+
+                # Eğer tıklanan bölge BENİMSE
+                if state.regions[region_id]["owner"] == my_id:
+                    self.selected_region = region_id
+                    self.target_region = None
+                    item.setBrush(QBrush(QColor(255, 255, 255, 200)))
+
+                    if phase == "ATTACK":
+                        self.highlight_enemy_neighbors(region_id, state, my_id)
+
+                # B) Eğer tıklanan bölge RAKİBİNSE ve zaten bir kaynak bölgem seçiliyse
+                elif phase == "ATTACK" and getattr(self, 'selected_region', None):
+                    neighbors = REGION_NEIGHBORS.get(self.selected_region, [])
+                    if region_id in neighbors:
+                        self.target_region = region_id
+                        logging.info(f">>> HEDEF SEÇİLDİ: {region_id}")
+
+                        self.regions[self.selected_region].setBrush(QBrush(QColor(255, 255, 255, 200)))
+
+                        item.setBrush(QBrush(QColor(255, 255, 0, 180)))
+                        self.highlight_enemy_neighbors(self.selected_region, state, my_id)
+            else:
+                self.selected_region = region_id
+                item.setBrush(QBrush(QColor(255, 255, 255, 200)))
 
         else:
             self.selected_region = None
+            self.target_region = None
 
         super().mousePressEvent(event)
+
+    def highlight_enemy_neighbors(self, region_id, state, my_id):
+        neighbors = REGION_NEIGHBORS.get(region_id, [])
+
+        for r_id, item in self.regions.items():
+            item.setOpacity(0.4)
+
+        self.regions[region_id].setOpacity(1.0)
+
+        for n in neighbors:
+            if state.regions[n]["owner"] != my_id:
+                enemy_item = self.regions[n]
+                enemy_item.setOpacity(1.0)
+                enemy_item.setPen(QPen(QColor("white"), 3))
+
+    def clear_selection(self):
+
+        self.selected_region = None
+        self.target_region = None
+
+        for r in self.regions.values():
+            r.setOpacity(1.0)
+            r.setPen(QPen(QColor(255, 255, 255, 50), 1))
+
+            if hasattr(r, 'base_color'):
+                r.setBrush(QBrush(r.base_color))
+            else:
+                r.setBrush(QBrush(QColor(25, 91, 0, 100)))
+
+        self.update()
 
     def wheelEvent(self, event):
         f = 1.2 if event.angleDelta().y() > 0 else 0.8
         self.scale(f, f)
-
-    def on_region_clicked(self, region_id):
-
-        if region_id not in REGION_NEIGHBORS:
-            return
-
-        neighbors = REGION_NEIGHBORS.get(region_id, [])
-
-        focus_list = neighbors + [region_id]
-
-        for current_region_id, path_item in self.region_items.items():
-            if current_region_id in focus_list:
-                path_item.setOpacity(1.0)
-                path_item.setPen(QtGui.QPen(QtGui.QColor("white"), 2))
-            else:
-                path_item.setOpacity(0.3)
-                path_item.setPen(QtGui.QPen(QtGui.QColor("black"), 1))
-
-if __name__ == "__main__":
-    import sys
-    from PyQt6.QtWidgets import QApplication, QMainWindow
-
-    app = QApplication(sys.argv)
-
-    win = QMainWindow()
-    win.setWindowTitle("Sadece Harita")
-    win.resize(1000, 700)
-
-    map_widget = UIMap()
-    win.setCentralWidget(map_widget)
-
-    win.show()
-    sys.exit(app.exec())

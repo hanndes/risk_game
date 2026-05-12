@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QApplication
 from views.login_view import LoginWindow
 from views.waiting_room_view import WaitingRoomWindow
 from views.game_view import GameWindow
+from ui.widgets.dialog.troop_selection_dialog import TroopSelectionDialog
 
 
 class ClientController:
@@ -33,8 +34,10 @@ class ClientController:
         self.waiting_room.show()
 
     def handle_central_messages(self, data):
+        print(f"!!! AĞDAN BİR VERİ GELDİ: Tipi -> {type(data)}")  # Bunu ekle
         if isinstance(data, dict):
             msg_type = data.get("type")
+
             if msg_type == "CONN_INFO":
                 assigned_id = data.get("assigned_id")
                 if assigned_id:
@@ -43,15 +46,25 @@ class ClientController:
                 self.opp_char = data.get("opponent_char")
                 if self.waiting_room:
                     self.waiting_room.update_opponent_info(data)
+
             elif msg_type == "GAME_START":
                 self.transition_to_game()
 
+            elif msg_type == "ERROR":
+                error_message = data.get("message", "Bilinmeyen bir kural hatası.")
+                if self.game_window:
+                    from PyQt6.QtWidgets import QMessageBox
+                    QMessageBox.warning(self.game_window, "Komutanım, Dikkat!", error_message)
+
+            elif msg_type == "BATTLE_RESULT":
+
+                if self.game_window:
+                    self.game_window.battle_result_signal.emit(data)
+
         else:
             logging.info("Ağdan GameState objesi yakalandı!")
-            # Eğer oyun penceresi henüz açılmadıysa bu objeyi yedekle
             self.last_received_state = data
 
-            # Eğer oyun penceresi zaten açıksa, veriyi ona gönder
             if self.game_window:
                 self.game_window.update_ui_with_state(data)
 

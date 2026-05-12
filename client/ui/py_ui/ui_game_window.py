@@ -97,12 +97,6 @@ class Ui_GameWindow(object):
 "  font-size: 22px;\n"
 "  font-weight: bold;\n"
 "}\n"
-"QLabel#label_cards_value {\n"
-"  color: #ffcc44;\n"
-"  font-family: \"Andale Mono\";\n"
-"  font-size: 22px;\n"
-"  font-weight: bold;\n"
-"}\n"
 "QLabel#label_continents_value {\n"
 "  color: #88cc44;\n"
 "  font-family: \"Andale Mono\";\n"
@@ -204,16 +198,22 @@ class Ui_GameWindow(object):
 "  padding: 8px 4px;\n"
 "}\n"
 "QPushButton#btn_end_turn:hover { background-color: #2a2a10; border-color: #cccc20; }\n"
-"QPushButton#btn_cards {\n"
-"  background-color: #1a0a3a;\n"
-"  color: #cc88ff;\n"
+"\n"
+"/* YENİ EKLENEN ZAR BUTONU STİLİ */\n"
+"QPushButton#btn_roll_dice {\n"
+"  background-color: #8b1a1a;\n"
+"  color: white;\n"
 "  font-family: \"Andale Mono\";\n"
-"  font-size: 10px;\n"
-"  letter-spacing: 1px;\n"
-"  border: 1px solid #441060;\n"
+"  font-size: 12px;\n"
+"  font-weight: bold;\n"
+"  letter-spacing: 2px;\n"
+"  border: 1px solid #ff6644;\n"
 "  border-radius: 4px;\n"
-"  padding: 4px;\n"
+"  padding: 8px 4px;\n"
 "}\n"
+"QPushButton#btn_roll_dice:hover { background-color: #cc3300; }\n"
+"QPushButton#btn_roll_dice:disabled { background-color: #3a0a0a; color: #888888; border: 1px solid #4a1a0a; }\n"
+"\n"
 "QLabel#label_status_conn {\n"
 "  color: #44cc44;\n"
 "  font-family: \"Andale Mono\";\n"
@@ -332,16 +332,28 @@ class Ui_GameWindow(object):
         self.div4.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         self.div4.setObjectName("div4")
         self.left_vbox.addWidget(self.div4)
-        self.label_cards_header = QtWidgets.QLabel(parent=self.left_panel)
-        self.label_cards_header.setObjectName("label_cards_header")
-        self.left_vbox.addWidget(self.label_cards_header)
-        self.label_cards_value = QtWidgets.QLabel(parent=self.left_panel)
-        self.label_cards_value.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.label_cards_value.setObjectName("label_cards_value")
-        self.left_vbox.addWidget(self.label_cards_value)
-        self.btn_cards = QtWidgets.QPushButton(parent=self.left_panel)
-        self.btn_cards.setObjectName("btn_cards")
-        self.left_vbox.addWidget(self.btn_cards)
+        self.dice_container = QtWidgets.QWidget(parent=self.left_panel)
+        self.dice_container.setObjectName("dice_container")
+        self.dice_container_layout = QtWidgets.QVBoxLayout(self.dice_container)
+        self.dice_container_layout.setContentsMargins(0, 0, 0, 0)
+        self.dice_container_layout.setSpacing(8)
+        self.dice_container_layout.setObjectName("dice_container_layout")
+        self.label_battle_header = QtWidgets.QLabel(parent=self.dice_container)
+        self.label_battle_header.setObjectName("label_battle_header")
+        self.dice_container_layout.addWidget(self.label_battle_header)
+        self.dice_layout = QtWidgets.QHBoxLayout()
+        self.dice_layout.setSpacing(10)
+        self.dice_layout.setObjectName("dice_layout")
+        self.label_dice_placeholder = QtWidgets.QLabel(parent=self.dice_container)
+        self.label_dice_placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.label_dice_placeholder.setObjectName("label_dice_placeholder")
+        self.dice_layout.addWidget(self.label_dice_placeholder)
+        self.dice_container_layout.addLayout(self.dice_layout)
+        self.btn_roll_dice = QtWidgets.QPushButton(parent=self.dice_container)
+        self.btn_roll_dice.setEnabled(False)
+        self.btn_roll_dice.setObjectName("btn_roll_dice")
+        self.dice_container_layout.addWidget(self.btn_roll_dice)
+        self.left_vbox.addWidget(self.dice_container)
         spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.left_vbox.addItem(spacerItem3)
         self.middle_hbox.addWidget(self.left_panel)
@@ -373,7 +385,7 @@ class Ui_GameWindow(object):
         self.label_opponent_name = QtWidgets.QLabel(parent=self.right_panel)
         self.label_opponent_name.setObjectName("label_opponent_name")
         self.opponent_header_hbox.addWidget(self.label_opponent_name)
-        spacerItem4 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem4 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.opponent_header_hbox.addItem(spacerItem4)
         self.right_vbox.addLayout(self.opponent_header_hbox)
         self.div5 = QtWidgets.QFrame(parent=self.right_panel)
@@ -429,7 +441,7 @@ class Ui_GameWindow(object):
         self.log_box.setMinimumHeight(120)
         self.log_box.setObjectName("log_box")
         self.right_vbox.addWidget(self.log_box)
-        spacerItem5 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem5 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.right_vbox.addItem(spacerItem5)
         self.btn_end_turn = QtWidgets.QPushButton(parent=self.right_panel)
         self.btn_end_turn.setMinimumHeight(44)
@@ -485,10 +497,11 @@ class Ui_GameWindow(object):
         self.label_continents_header.setStyleSheet(_translate("GameWindow", "color:#c0704a; font-family:\"Andale Mono\"; font-size:10px; letter-spacing:2px;"))
         self.label_continents_value.setText(_translate("GameWindow", "—"))
         self.div4.setStyleSheet(_translate("GameWindow", "background-color:#4a1a0a;"))
-        self.label_cards_header.setText(_translate("GameWindow", "ELİMDEKİ KARTLAR"))
-        self.label_cards_header.setStyleSheet(_translate("GameWindow", "color:#c0704a; font-family:\"Andale Mono\"; font-size:10px; letter-spacing:2px;"))
-        self.label_cards_value.setText(_translate("GameWindow", "0"))
-        self.btn_cards.setText(_translate("GameWindow", "KARTLARI GÖSTER"))
+        self.label_battle_header.setText(_translate("GameWindow", "SAVAŞ ALANI (ZARLAR)"))
+        self.label_battle_header.setStyleSheet(_translate("GameWindow", "color:#c0704a; font-family:\"Andale Mono\"; font-size:10px; letter-spacing:2px;"))
+        self.label_dice_placeholder.setText(_translate("GameWindow", "Saldırı Bekleniyor..."))
+        self.label_dice_placeholder.setStyleSheet(_translate("GameWindow", "color:#555555; font-style:italic;"))
+        self.btn_roll_dice.setText(_translate("GameWindow", "ZARLARI AT!"))
         self.label_map_placeholder.setText(_translate("GameWindow", "[ SVG HARİTA — Python tarafında QSvgWidget ile yükle ]"))
         self.label_opponent_icon.setText(_translate("GameWindow", "🛡"))
         self.label_opponent_name.setText(_translate("GameWindow", "RAKİP BEKLENİYOR"))
