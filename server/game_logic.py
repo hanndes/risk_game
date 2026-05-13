@@ -236,13 +236,14 @@ class RiskGameLogic:
         return False
 
     def _pass_turn(self):
-        if self.state.current_player == "player1":
-            self.state.current_player = "player2"
-        else:
+        if self.state.current_player == "player2":
+            self.state.turn += 1
             self.state.current_player = "player1"
+        else:
+            self.state.current_player = "player2"
 
         self.state.phase = "DRAFT"
-        self.state.turn += 1
+        self.state.last_log = f"Sıra {self.state.current_player}'e geçti. Tur: {self.state.turn}"
 
     def _advance_phase(self):
         if self.state.phase == "DRAFT":
@@ -252,7 +253,6 @@ class RiskGameLogic:
             self.state.phase = "FORTIFY"
             self.state.last_log = "Saldırı bitti, KUVVETLERİ TAŞIMA fazına geçildi."
         elif self.state.phase == "FORTIFY":
-            self._pass_turn()  # Tahkimat bittiyse turu tamamen diğer oyuncuya sal
             return True, "Sıra diğer oyuncuya geçti."
 
         return True, f"Faz {self.state.phase} olarak değişti."
