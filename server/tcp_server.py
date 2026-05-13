@@ -32,10 +32,15 @@ class RiskServer:
     def wait_connections(self):
         logging.info("Oyuncuların bağlanması bekleniyor...")
 
-        # 2 kişi bağlanana kadar bekleme döngüsü içerisinde
-        while len(self.clients) < 2:
+        while True:
             try:
                 client_socket, client_address = self.server_socket.accept()
+
+                if len(self.clients) >= 2:
+                    error_msg = {"type": "ERROR", "message": "Oyun şu an dolu, lütfen bekleyin."}
+                    client_socket.sendall(pickle.dumps(error_msg))
+                    client_socket.close()
+                    continue
 
                 try:
                     raw_identity = client_socket.recv(1024)
@@ -59,7 +64,6 @@ class RiskServer:
                     if len(self.clients) == 2:
                         logging.info("İki oyuncu da hazır. Eşleştirme yapılıyor...")
                         self.match_player()
-                        break # Döngüden çık ki artık yeni bağlantı aramasın.
 
                 except Exception as e:
                     logging.error(f"Kayıt hatası: {e}")
@@ -77,6 +81,12 @@ class RiskServer:
                     break
                 # alınan ham byte yığınını pickle ile python nesnesine çevirir
                 decoded_message = pickle.loads(message)
+
+                if isinstance(decoded_message, dict) and decoded_message.get("type") == MessageTypes.DISCONNECT:
+                    logging.info(f"Oyuncu {player_id} güvenli çıkış yaptı.")
+                    self.close_connection(client_socket)
+                    return
+
                 logging.info(f"Oyuncu {player_id} hamlesi alındı: {decoded_message}")
 
                 success, msg = self.game_logic.process_action(player_id, decoded_message)
@@ -177,9 +187,8 @@ class RiskServer:
             self.reset_game_state()
 
     def reset_game_state(self):
-        # Harita sahipliğini ve asker sayılarını başlangıç haline getirir
-        # self.territories = {} vb.
-        pass
+        logging.info("Lobi sıfırlandı. Yeni bir oyun için oyun motoru baştan oluşturuluyor.")
+        self.game_logic = RiskGameLogic()
 
     def stop(self):
         # Ana sistem kapatılmak istendiğinde her şeyi temizler

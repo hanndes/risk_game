@@ -446,6 +446,15 @@ class GameWindow(QMainWindow):
 
             print(f">>> Bilgi: {from_reg} bölgesinde sadece sınır güvenliği için 1 asker kaldığından, ekstra sevkiyat yapılamadı. Saldırı birliği {to_reg} bölgesine yerleşti")
 
+    def closeEvent(self, event):
+
+        if hasattr(self, 'player_obj') and self.player_obj and hasattr(self.player_obj, 'client'):
+            if self.player_obj.client.client_socket:
+                self.player_obj.client.send_disconnect_message()
+                self.player_obj.client.close_connection()
+
+        event.accept()
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 

@@ -2,7 +2,7 @@ import random
 import sys
 import os
 
-from shared.constants import REGION_NEIGHBORS
+from shared.constants import REGION_NEIGHBORS, MessageTypes
 from shared.game_state import GameState
 
 
@@ -35,6 +35,9 @@ class RiskGameLogic:
             return False, "Sıra sizde değil!"
 
         action_type = action_data.get("action")
+
+        if action_type == MessageTypes.DISCONNECT:
+            return True, None
 
             # 1. Faz: Takviye
         if action_type == "DRAFT" and self.state.phase == "DRAFT":

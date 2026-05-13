@@ -14,6 +14,7 @@ class WaitingRoomWindow(QMainWindow):
 
     trigger_game_start = pyqtSignal(str, str)
 
+
     def __init__(self, player_obj):
         super().__init__()
         self.ui = Ui_WaitingRoom()
@@ -25,8 +26,10 @@ class WaitingRoomWindow(QMainWindow):
         self.ui.gamer2_name.setText("Rakip Aranıyor...")
         self.ui.progressBar.setMinimum(0)
         self.ui.progressBar.setMaximum(0)
+        self.is_switching_to_game = False
 
         self.assign_random_character()
+
 
     def update_opponent_info(self, data: dict):
         opp_name = data.get("opponent_name")
@@ -65,3 +68,20 @@ class WaitingRoomWindow(QMainWindow):
 
         except FileNotFoundError:
             print(f"HATA: Klasör yolu bulunamadı: {chars_path}")
+
+    def closeEvent(self, event):
+        if self.is_switching_to_game:
+            logging.info("Oyun ekranına geçiliyor, bağlantı korunuyor.")
+            event.accept()
+            return
+
+        logging.info("Bekleme odasından çıkılıyor, bağlantı temizleniyor...")
+
+        if hasattr(self, 'player') and self.player and hasattr(self.player, 'client'):
+            try:
+                self.player.client.send_disconnect_message()
+                self.player.client.close_connection()
+            except Exception as e:
+                logging.error(f"Bekleme odası kapatılırken hata oluştu: {e}")
+
+        event.accept()

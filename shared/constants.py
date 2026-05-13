@@ -4,8 +4,7 @@ class MessageTypes:
     GAME_START = "GAME_START"
     ERROR = "ERROR"  # Bir hata oluştuğunda
     OPPONENT_LEFT = "OPPONENT_LEFT"
-
-# shared/constants.py
+    DISCONNECT = "DISCONNECT"
 
 # SVG haritasındaki ID'lerle tam uyumlu komşuluk (Adjacency) sözlüğü
 REGION_NEIGHBORS = {

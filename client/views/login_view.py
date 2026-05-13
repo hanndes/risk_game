@@ -52,3 +52,10 @@ class LoginWindow(QDialog):
             self.login_success.emit(self.player)
 
             self.close()
+
+    def closeEvent(self, event):
+        if hasattr(self, 'player') and self.player.client:
+            self.player.client.send_disconnect_message()
+            self.player.client.close_connection()
+
+        event.accept()

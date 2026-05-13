@@ -17,6 +17,8 @@ class ClientController:
         # Uygulamayı Login ekranı ile başlat
         self.show_login()
 
+        self.app.aboutToQuit.connect(self.shutdown_application)
+
     def show_login(self):
         self.login_window = LoginWindow()
         self.login_window.login_success.connect(self.start_waiting_session)
@@ -70,19 +72,26 @@ class ClientController:
 
     def transition_to_game(self):
         logging.info("Oyun başlatılıyor, sahne değişimi yapılıyor.")
+
         if self.waiting_room:
+            self.waiting_room.is_switching_to_game = True
+
             self.waiting_room.close()
 
         opp_name = getattr(self, 'opp_name', 'Rakip')
         opp_img = getattr(self, 'opp_char', None)
 
         self.game_window = GameWindow(self.player, opp_name, opp_img)
-
         self.game_window.show()
 
         if hasattr(self, 'last_received_state'):
-            print(">>> ELDEKİ VERİ OYUN EKRANINA AKTARILIYOR...")
             self.game_window.update_ui_with_state(self.last_received_state)
 
     def run(self):
         sys.exit(self.app.exec())
+
+    def shutdown_application(self):
+        logging.info("Uygulama kapatılıyor, ağ bağlantısı kesiliyor...")
+        if self.player and self.player.client:
+            self.player.client.send_disconnect_message()
+            self.player.client.close_connection()

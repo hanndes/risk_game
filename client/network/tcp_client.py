@@ -1,6 +1,7 @@
 import socket
 import pickle
 import logging
+import threading
 from threading import Thread
 from typing import Optional, Callable
 
@@ -28,6 +29,7 @@ class TCPClient:
         th.daemon = True
         th.start()
 
+        self.lock = threading.Lock()
 
     def start_client(self, server_ip, server_port):
         logging.info("İstemci başlatılıyor...")
@@ -101,8 +103,24 @@ class TCPClient:
             logging.error(f"Mesaj gönderilemedi: {e}")
             self.close_connection()
 
-    def close_connection(self):
+    def send_disconnect_message(self):
         if self.client_socket:
-            self.client_socket.close()
-            self.client_socket = None
-            logging.info("Sunucu bağlantısı kapatıldı.")
+            try:
+                disconnect_msg = {"type": MessageTypes.DISCONNECT}
+                self.send_message(disconnect_msg)
+            except Exception as e:
+                logging.error(f"Çıkış mesajı gönderilemedi: {e}")
+
+    def close_connection(self):
+        with self.lock:
+            if self.client_socket is None:
+                return
+
+            try:
+                self.client_socket.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+            finally:
+                self.client_socket.close()
+                self.client_socket = None
+                logging.info("Sunucu bağlantısı güvenli kapatıldı.")
