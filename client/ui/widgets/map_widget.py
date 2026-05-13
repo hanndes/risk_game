@@ -133,14 +133,44 @@ class UIMap(QGraphicsView):
 
                 # Eğer tıklanan bölge BENİMSE
                 if state.regions[region_id]["owner"] == my_id:
-                    self.selected_region = region_id
-                    self.target_region = None
-                    item.setBrush(QBrush(QColor(255, 255, 255, 200)))
+                    # SALDIRI VE TAKVİYE FAZI:
+                    if phase == "ATTACK" or phase == "DRAFT":
+                        self.selected_region = region_id
+                        self.target_region = None
+                        item.setBrush(QBrush(QColor(255, 255, 255, 200)))  # Kaynak beyazı
 
-                    if phase == "ATTACK":
-                        self.highlight_enemy_neighbors(region_id, state, my_id)
+                        if phase == "ATTACK":
+                            self.highlight_enemy_neighbors(region_id, state, my_id)
 
-                # B) Eğer tıklanan bölge RAKİBİNSE ve zaten bir kaynak bölgem seçiliyse
+                    # KUVVETLERİ TAŞI FAZI
+                    elif phase == "FORTIFY":
+                        if not getattr(self, 'selected_region', None) or (
+                                self.selected_region and self.target_region):
+                            self.selected_region = region_id
+                            self.target_region = None
+                            item.setBrush(QBrush(QColor(255, 255, 255, 200)))
+                            self.highlight_friendly_reachable(region_id, state, my_id)
+                        # İPTAL DURUMU
+                        elif self.selected_region == region_id:
+                            self.clear_selection()
+                        # İKİNCİ TIKLAMA
+                        else:
+                            reachable = self.get_reachable_territories(self.selected_region, state, my_id)
+                            if region_id in reachable:
+                                self.target_region = region_id
+                                logging.info(f">>> HEDEF SEÇİLDİ (TAHKİMAT): {region_id}")
+
+                                self.regions[self.selected_region].setBrush(QBrush(QColor(255, 255, 255, 200)))
+                                item.setBrush(QBrush(QColor(0, 255, 255, 180)))
+                                self.highlight_friendly_reachable(self.selected_region, state, my_id)
+                            else:
+                                # Ulaşılamayan kendi bölgesine tıkladıysa, orayı "Yeni Kaynak" yap
+                                self.selected_region = region_id
+                                self.target_region = None
+                                item.setBrush(QBrush(QColor(255, 255, 255, 200)))
+                                self.highlight_friendly_reachable(region_id, state, my_id)
+
+                # Eğer tıklanan bölge RAKİBİNSE
                 elif phase == "ATTACK" and getattr(self, 'selected_region', None):
                     neighbors = REGION_NEIGHBORS.get(self.selected_region, [])
                     if region_id in neighbors:
@@ -190,6 +220,38 @@ class UIMap(QGraphicsView):
                 r.setBrush(QBrush(QColor(25, 91, 0, 100)))
 
         self.update()
+
+    def get_reachable_territories(self, start_region, state, my_id):
+
+        reachable = []
+        visited = set()
+        queue = [start_region]
+        visited.add(start_region)
+
+        while queue:
+            current = queue.pop(0)
+            neighbors = REGION_NEIGHBORS.get(current, [])
+
+            for neighbor in neighbors:
+                if neighbor not in visited and state.regions[neighbor]["owner"] == my_id:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+                    reachable.append(neighbor)
+
+        return reachable
+
+    def highlight_friendly_reachable(self, region_id, state, my_id):
+        reachable = self.get_reachable_territories(region_id, state, my_id)
+
+        for r_id, item in self.regions.items():
+            item.setOpacity(0.4)
+
+        self.regions[region_id].setOpacity(1.0)
+
+        for n in reachable:
+            friendly_item = self.regions[n]
+            friendly_item.setOpacity(1.0)
+            friendly_item.setPen(QPen(QColor(0, 255, 255, 200), 3))
 
     def wheelEvent(self, event):
         f = 1.2 if event.angleDelta().y() > 0 else 0.8

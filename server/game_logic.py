@@ -188,6 +188,53 @@ class RiskGameLogic:
 
         return True, "Saldırı hazırlığı yapıldı, zarlar ekrana yansıtılıyor."
 
+    def _handle_fortify(self, client_id, data):
+
+        from_region = data["from"]
+        to_region = data["to"]
+        amount = data["amount"]
+
+        if self.state.regions[from_region]["owner"] != client_id or self.state.regions[to_region]["owner"] != client_id:
+            return False, "Sadece kendi bölgeleriniz arasında asker taşıyabilirsiniz."
+
+        if self.state.regions[from_region]["troops"] - amount < 1:
+            return False, "Kaynak bölgede en az 1 asker bırakmak zorundasınız."
+
+        if not self._has_valid_path(client_id, from_region, to_region):
+            return False, "Bu iki bölge arasında size ait kesintisiz bir yol bulunmuyor!"
+
+        self.state.regions[from_region]["troops"] -= amount
+        self.state.regions[to_region]["troops"] += amount
+        self.state.last_log = f"{client_id}, {from_region} bölgesinden {to_region} bölgesine {amount} asker kaydırdı."
+
+        self._pass_turn()
+
+        return True, "Kuvvetler başarıyla taşındı ve tur sona erdi."
+
+    def _has_valid_path(self, player_id, start_region, end_region):
+
+        if start_region == end_region:
+            return True
+
+        visited = set()
+        queue = [start_region]
+        visited.add(start_region)
+
+        while queue:
+            current = queue.pop(0)
+
+            if current == end_region:
+                return True
+
+            neighbors = REGION_NEIGHBORS.get(current, [])
+
+            for neighbor in neighbors:
+                if neighbor not in visited and self.state.regions[neighbor]["owner"] == player_id:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+
+        return False
+
     def _pass_turn(self):
         if self.state.current_player == "player1":
             self.state.current_player = "player2"

@@ -40,6 +40,7 @@ class GameWindow(QMainWindow):
         self.ui.btn_end_turn.clicked.connect(self.on_end_turn_clicked)
         self.ui.btn_attack.clicked.connect(self.on_attack_clicked)
         self.ui.btn_roll_dice.clicked.connect(self.on_roll_dice_clicked)
+        self.ui.btn_fortify.clicked.connect(self.on_fortify_clicked)
 
         self.battle_result_signal.connect(self.handle_battle_result)
 
@@ -355,6 +356,59 @@ class GameWindow(QMainWindow):
 
         except Exception as e:
             QMessageBox.critical(self, "Bağlantı Hatası", f"Sunucuya veri gönderilirken hata oluştu:\n{e}")
+
+    def on_fortify_clicked(self):
+
+        source_region = getattr(self.map_widget, 'selected_region', None)
+        target_region = getattr(self.map_widget, 'target_region', None)
+
+        if not source_region or not target_region:
+            QMessageBox.warning(self, "Komutanım!",
+                                "Kuvvet taşımak için haritadan önce KAYNAK bölgenizi, sonra HEDEF bölgenizi seçmelisiniz.")
+            return
+
+        if not hasattr(self, 'current_state'):
+            return
+
+        source_owner = self.current_state.regions[source_region]["owner"]
+        target_owner = self.current_state.regions[target_region]["owner"]
+
+        if source_owner != self.my_player_id or target_owner != self.my_player_id:
+            QMessageBox.warning(self, "Hatalı Seçim!",
+                                "Kuvvet taşıması sadece KENDİ bölgeleriniz arasında yapılabilir!")
+            return
+
+        source_troops = self.current_state.regions[source_region]["troops"]
+
+        if source_troops < 2:
+            QMessageBox.warning(self, "Yetersiz Birlik",
+                                "Bu bölgeden asker taşıyamazsınız. Sınır güvenliği için en az 1 asker kalmalıdır.")
+            return
+
+        max_transferable = source_troops - 1
+
+        dialog = TroopSelectionDialog(source_region, max_transferable, self)
+
+        if dialog.exec():
+            amount = dialog.get_value()
+
+            action_data = {
+                "action": "FORTIFY",
+                "from": source_region,
+                "to": target_region,
+                "amount": amount
+            }
+
+            print(f">>> Sunucuya Tahkimat İsteği Gönderiliyor: {action_data}")
+
+            try:
+                if self.player_obj:
+                    self.player_obj.send_action(action_data)
+
+                    if hasattr(self.map_widget, 'clear_selection'):
+                        self.map_widget.clear_selection()
+            except Exception as e:
+                QMessageBox.critical(self, "Hata", f"Sunucuya veri gönderilemedi: {e}")
 
     def handle_battle_result(self, result_data):
         status = result_data.get("status")
