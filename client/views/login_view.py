@@ -2,7 +2,6 @@ from PyQt6.QtWidgets import QDialog
 import os
 from PyQt6.QtGui import QPalette, QBrush, QPixmap
 from ui.py_ui.ui_login import Ui_LoginDialog
-from client.views.waiting_room_view import WaitingRoomWindow
 from client.core.player import Player
 from client.network.tcp_client import TCPClient
 from PyQt6.QtCore import pyqtSignal, Qt

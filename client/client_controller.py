@@ -4,7 +4,6 @@ from PyQt6.QtWidgets import QApplication
 from views.login_view import LoginWindow
 from views.waiting_room_view import WaitingRoomWindow
 from views.game_view import GameWindow
-from ui.widgets.dialog.troop_selection_dialog import TroopSelectionDialog
 
 
 class ClientController:

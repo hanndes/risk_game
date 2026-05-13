@@ -1,8 +1,7 @@
+import logging
 import random
-import sys
-import os
 
-from shared.constants import REGION_NEIGHBORS, MessageTypes
+from shared.constants import REGION_NEIGHBORS, MessageTypes, CONTINENTS
 from shared.game_state import GameState
 
 
@@ -245,8 +244,35 @@ class RiskGameLogic:
         else:
             self.state.current_player = "player2"
 
+        if self.state.turn > 1:
+            self._add_reinforcements(self.state.current_player)
+            self.state.last_log = f"Sıra {self.state.current_player}'e geçti. Tur: {self.state.turn}. Bölge sayınıza göre askerleriniz eklendi!"
+        else:
+            self.state.last_log = f"Sıra {self.state.current_player}'e geçti. Tur: {self.state.turn}."
+
         self.state.phase = "DRAFT"
-        self.state.last_log = f"Sıra {self.state.current_player}'e geçti. Tur: {self.state.turn}"
+
+    def _calculate_continent_bonus(self, player_id):
+        total_bonus = 0
+        for continent_name, data in CONTINENTS.items():
+            is_owned = all(self.state.regions[r]["owner"] == player_id for r in data["regions"])
+            if is_owned:
+                total_bonus += data["bonus"]
+        return total_bonus
+
+    def _add_reinforcements(self, player_id):
+        owned_regions = [r for r, data in self.state.regions.items() if data["owner"] == player_id]
+        region_count = len(owned_regions)
+        region_bonus = max(3, region_count // 3)
+
+        continent_bonus = self._calculate_continent_bonus(player_id)
+
+        total_reinforcements = region_bonus + continent_bonus
+
+        self.state.unplaced_troops[player_id] += total_reinforcements
+
+        self.state.last_log += f" {region_bonus} (Bölge) + {continent_bonus} (Kıta) bonusu aldınız."
+        logging.info(f"{player_id} için toplam {total_reinforcements} asker eklendi.")
 
     def _advance_phase(self):
         if self.state.phase == "DRAFT":

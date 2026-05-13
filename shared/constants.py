@@ -62,3 +62,30 @@ REGION_NEIGHBORS = {
     "western_australia": ["indonesia", "new_guinea", "eastern_australia"],
     "eastern_australia": ["new_guinea", "western_australia"]
 }
+
+CONTINENTS = {
+    "North America": {
+        "regions": ["alaska", "northwest_territory", "greenland", "alberta", "ontario", "quebec", "western_united_states", "eastern_united_states", "central_america"],
+        "bonus": 5
+    },
+    "South America": {
+        "regions": ["venezuela", "peru", "brazil", "argentina"],
+        "bonus": 2
+    },
+    "Europe": {
+        "regions": ["iceland", "scandinavia", "great_britain", "northern_europe", "western_europe", "southern_europe", "ukraine"],
+        "bonus": 5
+    },
+    "Africa": {
+        "regions": ["north_africa", "egypt", "east_africa", "congo", "south_africa", "madagascar"],
+        "bonus": 3
+    },
+    "Asia": {
+        "regions": ["ural", "siberia", "yakursk", "kamchatka", "irkutsk", "afghanistan", "china", "mongolia", "japan", "middle_east", "india", "siam"],
+        "bonus": 7
+    },
+    "Australia": {
+        "regions": ["indonesia", "new_guinea", "western_australia", "eastern_australia"],
+        "bonus": 2
+    }
+}
