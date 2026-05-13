@@ -1,10 +1,12 @@
 from PyQt6.QtWidgets import QDialog
-
+import os
+from PyQt6.QtGui import QPalette, QBrush, QPixmap
 from ui.py_ui.ui_login import Ui_LoginDialog
 from client.views.waiting_room_view import WaitingRoomWindow
 from client.core.player import Player
 from client.network.tcp_client import TCPClient
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import pyqtSignal, Qt
+
 
 class LoginWindow(QDialog):
 
@@ -15,6 +17,23 @@ class LoginWindow(QDialog):
         self.ui = Ui_LoginDialog()
         self.ui.setupUi(self)
         self.ui.pushButton.clicked.connect(self.handle_login)
+
+        self.setup_background()
+
+    def setup_background(self):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        image_path = os.path.join(base_dir, "..", "assets", "images", "risk_login.jpg")
+
+        if os.path.exists(image_path):
+            palette = QPalette()
+            pixmap = QPixmap(image_path)
+            scaled_pixmap = pixmap.scaled(self.size(), Qt.AspectRatioMode.IgnoreAspectRatio)
+            palette.setBrush(QPalette.ColorRole.Window, QBrush(scaled_pixmap))
+            self.setPalette(palette)
+        else:
+            print(f"Uyarı: Resim bulunamadı, aranan yol: {image_path}")
+
 
     def handle_login(self):
 

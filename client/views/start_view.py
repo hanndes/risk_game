@@ -1,1 +1,0 @@
-# Başlangıç ekranı mantığı (IP/Port girip sunucuya bağlanma)
