@@ -254,5 +254,17 @@ class UIMap(QGraphicsView):
             friendly_item.setPen(QPen(QColor(0, 255, 255, 200), 3))
 
     def wheelEvent(self, event):
-        f = 1.2 if event.angleDelta().y() > 0 else 0.8
-        self.scale(f, f)
+        zoom_in_factor = 1.2
+        zoom_out_factor = 1 / zoom_in_factor
+
+        current_scale = self.transform().m11()
+
+        min_scale = 0.5
+        max_scale = 3.0
+
+        if event.angleDelta().y() > 0:
+            if current_scale < max_scale:
+                self.scale(zoom_in_factor, zoom_in_factor)
+        else:
+            if current_scale > min_scale:
+                self.scale(zoom_out_factor, zoom_out_factor)
