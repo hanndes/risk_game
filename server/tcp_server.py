@@ -10,12 +10,21 @@ from server.game_logic import RiskGameLogic
 
 setup_logging()
 
-class RiskServer:
-    def __init__(self):
-        self.clients = []
-        self.server_socket = None
+
+class GameRoom:
+    def __init__(self, p1_data, p2_data):
+        self.p1 = p1_data
+        self.p2 = p2_data
+        self.clients = [p1_data, p2_data]
 
         self.game_logic = RiskGameLogic()
+
+
+class RiskServer:
+    def __init__(self):
+        self.waiting_players = []
+        self.active_rooms = {}
+        self.server_socket = None
 
         server_ip, server_port = ("", 5001)
         th = Thread(target=self.start_server, args=(server_ip, server_port))
@@ -26,7 +35,7 @@ class RiskServer:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((server_ip, server_port))
         self.server_socket.listen()
-        logging.info(f"Risk Sunucusu {server_port} portunda hazır.")
+        logging.info(f"Risk Sunucusu {server_port} portunda çoklu odalar için hazır.")
         self.wait_connections()
 
     def wait_connections(self):
@@ -36,34 +45,24 @@ class RiskServer:
             try:
                 client_socket, client_address = self.server_socket.accept()
 
-                if len(self.clients) >= 2:
-                    error_msg = {"type": "ERROR", "message": "Oyun şu an dolu, lütfen bekleyin."}
-                    client_socket.sendall(pickle.dumps(error_msg))
-                    client_socket.close()
-                    continue
-
                 try:
                     raw_identity = client_socket.recv(1024)
                     if not raw_identity: continue
 
-                    identity = pickle.loads(raw_identity) # {type: "SIGN_UP", name: "Ceyda", char: "..."}
+                    identity = pickle.loads(raw_identity)
 
                     player_data = {
                         "socket": client_socket,
                         "name": identity["name"],
-                        "char": identity["char"]
+                        "char": identity["char"],
+                        "thread_started": False,
                     }
-                    self.clients.append(player_data)
-                    player_id = f"player{len(self.clients)}"
-                    logging.info(f"Oyuncu {player_id} ({player_data['name']}) bağlandı.")
 
-                    listen_thread = Thread(target=self.message_listen_thread, args=(client_socket, player_id))
-                    listen_thread.daemon = True
-                    listen_thread.start()
+                    self.waiting_players.append(player_data)
+                    logging.info(
+                        f"[{player_data['name']}] lobiye katıldı. Bekleyen oyuncu: {len(self.waiting_players)}")
 
-                    if len(self.clients) == 2:
-                        logging.info("İki oyuncu da hazır. Eşleştirme yapılıyor...")
-                        self.match_player()
+                    self.match_players_from_lobby()
 
                 except Exception as e:
                     logging.error(f"Kayıt hatası: {e}")
@@ -71,50 +70,89 @@ class RiskServer:
             except OSError:
                 break
 
+    def match_players_from_lobby(self):
+        while len(self.waiting_players) >= 2:
+            p1 = self.waiting_players.pop(0)
+            p2 = self.waiting_players.pop(0)
 
-    def message_listen_thread(self, client_socket, player_id):
-        logging.info(f"Oyuncu {player_id} dinleniyor...")
+            p1["id"] = "player1"
+            p2["id"] = "player2"
+
+            room = GameRoom(p1, p2)
+
+            self.active_rooms[p1["socket"]] = room
+            self.active_rooms[p2["socket"]] = room
+
+            logging.info(f"EŞLEŞME: {p1['name']} ve {p2['name']} yeni odaya alındı.")
+
+            if not p1["thread_started"]:
+                p1["thread_started"] = True
+                Thread(target=self.message_listen_thread, args=(p1["socket"],), daemon=True).start()
+
+            if not p2["thread_started"]:
+                p2["thread_started"] = True
+                Thread(target=self.message_listen_thread, args=(p2["socket"],), daemon=True).start()
+
+            self.start_match(room)
+
+    def message_listen_thread(self, client_socket):
+        logging.info("Yeni bir dinleme kanalı (Thread) açıldı...")
         while True:
             try:
                 message = client_socket.recv(4096)
                 if not message:
                     break
-                # alınan ham byte yığınını pickle ile python nesnesine çevirir
+
                 decoded_message = pickle.loads(message)
 
+                room = self.active_rooms.get(client_socket)
+
+                if not room:
+                    if isinstance(decoded_message, dict) and decoded_message.get("type") == MessageTypes.DISCONNECT:
+                        logging.info("Oyuncu lobideyken çıkış yaptı.")
+                        self.close_connection(client_socket)
+                        return
+                    continue  # Lobideyken gelen oyun hamlelerini yoksay
+
+                player_id = room.p1["id"] if room.p1["socket"] == client_socket else room.p2["id"]
+
                 if isinstance(decoded_message, dict) and decoded_message.get("type") == MessageTypes.DISCONNECT:
-                    logging.info(f"Oyuncu {player_id} güvenli çıkış yaptı.")
+                    logging.info(
+                        f"[{room.p1['name']} vs {room.p2['name']}] Odası - Oyuncu {player_id} güvenli çıkış yaptı.")
                     self.close_connection(client_socket)
                     return
 
-                logging.info(f"Oyuncu {player_id} hamlesi alındı: {decoded_message}")
+                logging.info(f"[{room.p1['name']} vs {room.p2['name']}] Odası - {player_id} hamlesi: {decoded_message}")
 
-                success, msg = self.game_logic.process_action(player_id, decoded_message)
+                success, msg = room.game_logic.process_action(player_id, decoded_message)
 
                 if success:
                     if isinstance(msg, dict):
-                        self.broadcast_message(msg)
-                    self.broadcast_message(self.game_logic.state)
+                        self.broadcast_to_room(room, msg)
+                    self.broadcast_to_room(room, room.game_logic.state)
                 else:
                     error_msg = {"type": "ERROR", "message": msg}
                     client_socket.sendall(pickle.dumps(error_msg))
 
-            except ConnectionResetError:
+            except OSError as e:
+                if e.errno == 9:
+                    logging.debug(f"Oyuncu {player_id} için soket kapatıldı. Thread sonlandırılıyor.")
+                else:
+                    logging.error(f"Soket Hatası (OS): {e}")
+                return
+
+            except (ConnectionResetError, EOFError):
                 logging.error(f"Oyuncu {player_id} bağlantısı koptu.")
                 self.close_connection(client_socket)
                 return
-            except EOFError:
-                logging.error(f"Oyuncu {player_id} verisi işlenemedi veya eksik.")
+
+            except Exception as e:
+                logging.error(f"Beklenmeyen Hata: {e}")
                 self.close_connection(client_socket)
                 return
 
-    def match_player(self):
-        if len(self.clients) < 2:
-            return
-
-        p1, p2 = self.clients[0], self.clients[1]
-
-        ids = ["player1", "player2"]
+    def start_match(self, room):
+        p1, p2 = room.p1, room.p2
 
         info_p1 = {
             "type": MessageTypes.CONNECTION_INFO,
@@ -136,73 +174,73 @@ class RiskServer:
         p1["socket"].sendall(pickle.dumps(start_msg))
         p2["socket"].sendall(pickle.dumps(start_msg))
 
-        initial_state_bytes = pickle.dumps(self.game_logic.state)
+        initial_state_bytes = pickle.dumps(room.game_logic.state)
         p1["socket"].sendall(initial_state_bytes)
         p2["socket"].sendall(initial_state_bytes)
-        logging.info("Oyuncular eşleştirildi ve oyun başlatılıyor.")
 
-    def broadcast_message(self, data_object):
+    def broadcast_to_room(self, room, data_object):
         try:
             data_bytes = pickle.dumps(data_object)
-
-            for client in self.clients:
+            for client in room.clients:
                 try:
                     client["socket"].sendall(data_bytes)
                 except Exception as e:
-                    logging.error(f"Broadcast hatası (bir istemciye gönderilemedi): {e}")
-
+                    logging.error(f"Oda içi broadcast hatası: {e}")
         except Exception as e:
             logging.error(f"Pickle paketleme hatası: {e}")
 
     def close_connection(self, client_socket):
-        # Sadece bağlantısı kopan VEYA çıkan oyuncunun soketini kapatır
-        # Projede sunucu AWS'de çalışacağı için oyuncular gitse bile sunucu kapanmamalı,
-        # yeni oyunlar için ayakta kalmalıdır
+        # 1. ihtimal: Oyuncu lobideyken (henüz eşleşmeden) çıktıysa
+        for p in self.waiting_players:
+            if p["socket"] == client_socket:
+                self.waiting_players.remove(p)
+                client_socket.close()
+                logging.info(f"{p['name']} eşleşmeden lobiden ayrıldı.")
+                return
 
-        leaving_player = None
+        # 2. ihtimal: Oyuncu aktif bir maçtayken çıktıysa
+        room = self.active_rooms.get(client_socket)
+        if room:
+            leaving_player = room.p1 if room.p1["socket"] == client_socket else room.p2
+            remaining_player = room.p2 if room.p1["socket"] == client_socket else room.p1
 
-        for client in self.clients:
-            if client["socket"] == client_socket:
-                leaving_player = client
-                break
+            logging.info(f"{leaving_player['name']} oyundan düştü/ayrıldı. Oda kapatılıyor.")
 
-        if leaving_player:
-            logging.info(f"{leaving_player['name']} ayrıldı.")
-            self.clients.remove(leaving_player)  # RAM'den sil
-            client_socket.close() # Sadece bu oyuncunun soketini kapat
-
-        # Eğer geride 1 kişi kaldıysa, ona oyunun bittiğini haber ver
-        if len(self.clients) == 1:
             try:
-                remaining_player = self.clients[0]["socket"]
-                info = {"type": MessageTypes.OPPONENT_LEFT}
-                remaining_player.sendall(pickle.dumps(info))
+                leaving_player["socket"].close()
             except:
                 pass
 
-        # Herkes gittiyse lobiyi sıfırla
-        # Sunucu AWS'de kapanmadan durmalı, yeni oyunculara temiz sayfa açmalı
-        if len(self.clients) == 0:
-            logging.info("Lobi tamamen boşaldı. Oyun verileri sıfırlanıyor.")
-            self.reset_game_state()
+            try:
+                info = {"type": MessageTypes.OPPONENT_LEFT}
+                remaining_player["socket"].sendall(pickle.dumps(info))
 
-    def reset_game_state(self):
-        logging.info("Lobi sıfırlandı. Yeni bir oyun için oyun motoru baştan oluşturuluyor.")
-        self.game_logic = RiskGameLogic()
+                remaining_player["socket"].close()
+            except:
+                pass
+
+            if room.p1["socket"] in self.active_rooms: del self.active_rooms[room.p1["socket"]]
+            if room.p2["socket"] in self.active_rooms: del self.active_rooms[room.p2["socket"]]
 
     def stop(self):
-        # Ana sistem kapatılmak istendiğinde her şeyi temizler
         logging.info("Sunucu tamamen kapatılıyor...")
 
-        # Önce içeride kalan oyuncuları at ve soketlerini kapat
-        for client in self.clients:
+        # Tüm odalardaki oyuncuları at
+        for sock in list(self.active_rooms.keys()):
             try:
-                client["socket"].close()
+                sock.close()
             except:
                 pass
-        self.clients.clear()
+        self.active_rooms.clear()
+
+        # Lobidekileri at
+        for p in self.waiting_players:
+            try:
+                p["socket"].close()
+            except:
+                pass
+        self.waiting_players.clear()
 
         if self.server_socket:
             self.server_socket.close()
             self.server_socket = None
-            logging.info("Ana soket başarıyla kapatıldı.")

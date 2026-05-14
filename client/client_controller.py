@@ -58,9 +58,11 @@ class ClientController:
                     QMessageBox.warning(self.game_window, "Komutanım, Dikkat!", error_message)
 
             elif msg_type == "BATTLE_RESULT":
-
                 if self.game_window:
                     self.game_window.battle_result_signal.emit(data)
+
+            elif msg_type == "OPPONENT_LEFT":
+                self.return_to_waiting_room()
 
         else:
             logging.info("Ağdan GameState objesi yakalandı!")
@@ -88,6 +90,26 @@ class ClientController:
 
     def run(self):
         sys.exit(self.app.exec())
+
+    def return_to_waiting_room(self):
+        logging.info("Rakip ayrıldı. Kullanıcıya bilgi verilip uygulama kapatılacak.")
+
+        from PyQt6.QtWidgets import QMessageBox
+
+        active_window = self.game_window if self.game_window else self.waiting_room
+
+        msg_box = QMessageBox(active_window)
+        msg_box.setWindowTitle("Bağlantı Koptu")
+        msg_box.setIcon(QMessageBox.Icon.Warning)
+        msg_box.setText("Rakibiniz oyundan ayrıldı veya bağlantısı kesildi.")
+        msg_box.setInformativeText(
+            "Güvenliğiniz için bağlantı sonlandırıldı. Lütfen uygulamayı kapatıp yeniden giriş yapın.")
+
+        kapat_btn = msg_box.addButton("Bağlantıyı Kapat", QMessageBox.ButtonRole.AcceptRole)
+
+        msg_box.exec()
+
+        self.app.quit()
 
     def shutdown_application(self):
         logging.info("Uygulama kapatılıyor, ağ bağlantısı kesiliyor...")
