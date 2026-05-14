@@ -11,23 +11,23 @@ class RiskGameLogic:
         self.setup_initial_board()
 
     def setup_initial_board(self):
-
         regions = list(REGION_NEIGHBORS.keys())
-        random.shuffle(regions)
 
-        p1_regions = regions[:21]
-        p2_regions = regions[21:]
+        p2_target_region = regions[0]
+        p1_target_regions = regions[1:]
 
-        for r in p1_regions:
-            self.state.update_region(r, "player1", 1)
-        for r in p2_regions:
-            self.state.update_region(r, "player2", 1)
+        for r in p1_target_regions:
+            self.state.update_region(r, "player1", 5)
 
-        self.state.unplaced_troops = {"player1": 19, "player2": 19}
+        self.state.update_region(p2_target_region, "player2", 1)
+
+        self.state.unplaced_troops = {"player1": 10, "player2": 10}
 
         self.state.current_player = "player1"
-        self.state.phase = "DRAFT"
-        self.state.last_log = "Oyun başladı! Bölgeler rastgele dağıtıldı. Sıra Player 1'de."
+        self.state.phase = "ATTACK"
+        self.state.last_log = "TEST MODU: Player 1 kazanmaya çok yakın!"
+
+
 
     def process_action(self, client_id, action_data):
         if self.state.current_player != client_id:
@@ -92,7 +92,6 @@ class RiskGameLogic:
         to_region = data["to"]
 
         attacker_total = self.state.regions[from_region]["troops"]
-        defender_owner = self.state.regions[to_region]["owner"]
         defender_total = self.state.regions[to_region]["troops"]
 
         if to_region not in REGION_NEIGHBORS.get(from_region, []):
@@ -122,6 +121,7 @@ class RiskGameLogic:
 
         battle_status = "ONGOING"
         extra_transferable = 0
+        winner = None
 
         if self.state.regions[to_region]["troops"] <= 0:
             self.state.regions[to_region]["owner"] = client_id
@@ -132,8 +132,11 @@ class RiskGameLogic:
 
             battle_status = "ATTACKER_WON"
             self.state.last_log = f"{client_id}, {to_region} bölgesini ele geçirdi! Zarlar -> A:{final_att_rolls} S:{final_def_rolls}"
-
             extra_transferable = self.state.regions[from_region]["troops"] - 1
+
+            winner = self._check_win_condition()
+            if winner:
+                battle_status = "GAME_OVER"
 
         else:
             self.state.last_log = f"Çatışma! Zarlar: A:{final_att_rolls} S:{final_def_rolls}. Kayıplar: Saldıran -{att_losses}, Savunan -{def_losses}."
@@ -153,7 +156,8 @@ class RiskGameLogic:
             "status": battle_status,
             "att_loss": att_losses,
             "def_loss": def_losses,
-            "max_transferable": extra_transferable
+            "max_transferable": extra_transferable,
+            "winner": winner
         }
 
         self.state.prep_att_dice = 0
@@ -285,3 +289,13 @@ class RiskGameLogic:
             return True, "Sıra diğer oyuncuya geçti."
 
         return True, f"Faz {self.state.phase} olarak değişti."
+
+    # Sınıfın içine yeni bir metod olarak ekleyin
+    def _check_win_condition(self):
+        owners = {data["owner"] for data in self.state.regions.values()}
+        if len(owners) == 1:
+            winner = owners.pop()
+            self.state.phase = "GAME_OVER"
+            self.state.last_log = f"OYUN BİTTİ! Tüm bölgeler ele geçirildi. Kazanan: {winner}"
+            return winner
+        return None

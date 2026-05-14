@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QApplication
 from views.login_view import LoginWindow
 from views.waiting_room_view import WaitingRoomWindow
 from views.game_view import GameWindow
+from views.end_view import EndWindow
 
 
 class ClientController:
@@ -12,10 +13,11 @@ class ClientController:
         self.player = None
         self.waiting_room = None
         self.game_window = None
+        self.end_window = None
 
-        # Uygulamayı Login ekranı ile başlat
+        self.is_game_over = False
+
         self.show_login()
-
         self.app.aboutToQuit.connect(self.shutdown_application)
 
     def show_login(self):
@@ -51,6 +53,12 @@ class ClientController:
             elif msg_type == "GAME_START":
                 self.transition_to_game()
 
+            elif msg_type == "GAME_OVER":
+                self.is_game_over = True
+                winner_id = data.get("winner")
+                is_winner = (self.player.id == winner_id)
+                self.transition_to_end_game(is_winner)
+
             elif msg_type == "ERROR":
                 error_message = data.get("message", "Bilinmeyen bir kural hatası.")
                 if self.game_window:
@@ -62,7 +70,10 @@ class ClientController:
                     self.game_window.battle_result_signal.emit(data)
 
             elif msg_type == "OPPONENT_LEFT":
-                self.return_to_waiting_room()
+                if not self.is_game_over:
+                    self.return_to_waiting_room()
+                else:
+                    logging.info("Oyun zaten bittiği için rakibin ayrılması normal karşılandı.")
 
         else:
             logging.info("Ağdan GameState objesi yakalandı!")
@@ -110,6 +121,32 @@ class ClientController:
         msg_box.exec()
 
         self.app.quit()
+
+    def transition_to_end_game(self, is_winner):
+        logging.info(f"Oyun bitti ekranına geçiliyor. Kazandı mı?: {is_winner}")
+
+        if self.game_window:
+            self.game_window.close()
+            self.game_window = None
+
+        self.end_window = EndWindow(is_winner, self.player.name)
+
+        self.end_window.show()
+
+    def restart_application(self):
+        logging.info("Ana menüye/Yeniden oynamaya dönülüyor...")
+
+        self.is_game_over = False
+
+        if self.end_window:
+            self.end_window.close()
+            self.end_window = None
+
+        if self.player and self.player.client:
+            self.player.client.close_connection()
+
+        self.player = None
+        self.show_login()
 
     def shutdown_application(self):
         logging.info("Uygulama kapatılıyor, ağ bağlantısı kesiliyor...")

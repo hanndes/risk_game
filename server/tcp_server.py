@@ -97,24 +97,28 @@ class RiskServer:
 
     def message_listen_thread(self, client_socket):
         logging.info("Yeni bir dinleme kanalı (Thread) açıldı...")
+        player_id = "Belirsiz/Lobideki Oyuncu"
+
         while True:
             try:
+                room = self.active_rooms.get(client_socket)
+                if room:
+                    player_id = room.p1["id"] if room.p1["socket"] == client_socket else room.p2["id"]
+
                 message = client_socket.recv(4096)
+
                 if not message:
+                    logging.info(f"{player_id} bağlantısı sonlandı (boş veri geldi).")
                     break
 
                 decoded_message = pickle.loads(message)
-
-                room = self.active_rooms.get(client_socket)
 
                 if not room:
                     if isinstance(decoded_message, dict) and decoded_message.get("type") == MessageTypes.DISCONNECT:
                         logging.info("Oyuncu lobideyken çıkış yaptı.")
                         self.close_connection(client_socket)
                         return
-                    continue  # Lobideyken gelen oyun hamlelerini yoksay
-
-                player_id = room.p1["id"] if room.p1["socket"] == client_socket else room.p2["id"]
+                    continue
 
                 if isinstance(decoded_message, dict) and decoded_message.get("type") == MessageTypes.DISCONNECT:
                     logging.info(
@@ -129,27 +133,38 @@ class RiskServer:
                 if success:
                     if isinstance(msg, dict):
                         self.broadcast_to_room(room, msg)
+
+                        if msg.get("status") == "GAME_OVER":
+                            winner_id = msg.get("winner")
+                            logging.info(
+                                f"[{room.p1['name']} vs {room.p2['name']}] Odası kapandı! Kazanan: {winner_id}")
+
+                            game_over_msg = {
+                                "type": "GAME_OVER",
+                                "winner": winner_id
+                            }
+                            self.broadcast_to_room(room, game_over_msg)
+
                     self.broadcast_to_room(room, room.game_logic.state)
                 else:
                     error_msg = {"type": "ERROR", "message": msg}
                     client_socket.sendall(pickle.dumps(error_msg))
 
+
             except OSError as e:
                 if e.errno == 9:
-                    logging.debug(f"Oyuncu {player_id} için soket kapatıldı. Thread sonlandırılıyor.")
+                    logging.debug(f"[{player_id}] için soket kapatıldı (Errno 9). Thread sonlandırılıyor.")
                 else:
-                    logging.error(f"Soket Hatası (OS): {e}")
-                return
-
+                    logging.error(f"Soket Hatası (OS) - {player_id}: {e}")
+                break
             except (ConnectionResetError, EOFError):
-                logging.error(f"Oyuncu {player_id} bağlantısı koptu.")
+                logging.error(f"Oyuncu {player_id} bağlantısı koptu (Reset/EOF).")
                 self.close_connection(client_socket)
-                return
-
+                break
             except Exception as e:
-                logging.error(f"Beklenmeyen Hata: {e}")
+                logging.error(f"Beklenmeyen Hata - {player_id}: {e}")
                 self.close_connection(client_socket)
-                return
+                break
 
     def start_match(self, room):
         p1, p2 = room.p1, room.p2
