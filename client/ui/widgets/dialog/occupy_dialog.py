@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QDialog
-from ui.py_ui.ui_occupy_dialog import Ui_OccupyDialog  # Dönüştürdüğün dosyanın adı
+from ui.py_ui.ui_occupy_dialog import Ui_OccupyDialog
 
 
 class OccupyDialog(QDialog):

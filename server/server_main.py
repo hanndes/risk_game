@@ -1,4 +1,4 @@
-from tcp_server import RiskServer
+from server.tcp_server import RiskServer
 import time
 import logging
 

@@ -2,7 +2,7 @@ import socket
 import pickle
 import logging
 
-from config import setup_logging
+from server.config import setup_logging
 from threading import Thread
 
 from shared.constants import MessageTypes

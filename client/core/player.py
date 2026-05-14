@@ -1,5 +1,3 @@
-
-from client.network.tcp_client import TCPClient
 class Player:
     def __init__(self, name: str, player_id: str= None, client_obj=None):
         self.name = name

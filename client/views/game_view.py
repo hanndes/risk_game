@@ -2,8 +2,7 @@ import sys
 
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (QMainWindow, QApplication, QMessageBox,
-                             QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-                             QSlider, QSpinBox, QPushButton, QWidget)
+                             QHBoxLayout, QLabel, QWidget)
 from PyQt6.QtCore import pyqtSignal, Qt
 from ui.py_ui.ui_game_window import Ui_GameWindow
 from core.player import Player
