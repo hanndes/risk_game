@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QWidget
-from ui.py_ui.ui_end_window import Ui_EndScreen  # Kendi import yoluna göre düzelt
+from ui.py_ui.ui_end_window import Ui_EndScreen
 
 class EndWindow(QWidget, Ui_EndScreen):
     def __init__(self, is_winner, player_name):

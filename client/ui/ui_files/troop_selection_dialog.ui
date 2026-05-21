@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TroopSelectionDialog</class>
+ <widget class="QDialog" name="TroopSelectionDialog">
+  <property name="windowTitle">
+   <string>Takviye Gönder</string>
+  </property>
+  <property name="minimumWidth">
+   <number>320</number>
+  </property>
+  <property name="styleSheet">
+   <string>background-color: #1f0800; color: #e8c090; font-family: 'Andale Mono';</string>
+  </property>
+
+  <layout class="QVBoxLayout" name="layout">
+
+   <!-- Bilgi Etiketi -->
+   <item>
+    <widget class="QLabel" name="info_label">
+     <property name="text">
+      <string>Bölgeye takviye edilecek&#xa;asker miktarını seçin:</string>
+     </property>
+    </widget>
+   </item>
+
+   <!-- Slider + SpinBox Satırı -->
+   <item>
+    <layout class="QHBoxLayout" name="control_layout">
+
+     <item>
+      <widget class="QSlider" name="slider">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>100</number>
+       </property>
+       <property name="value">
+        <number>1</number>
+       </property>
+       <property name="styleSheet">
+        <string>QSlider::handle:horizontal { background: #8b1a1a; width: 15px; border-radius: 3px; }</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QSpinBox" name="spinbox">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>100</number>
+       </property>
+       <property name="value">
+        <number>1</number>
+       </property>
+       <property name="styleSheet">
+        <string>background-color: #0d0500; color: #ff6644; font-size: 14px; font-weight: bold; border: 1px solid #4a1a0a;</string>
+       </property>
+      </widget>
+     </item>
+
+    </layout>
+   </item>
+
+   <!-- Butonlar -->
+   <item>
+    <layout class="QHBoxLayout" name="button_layout">
+
+     <item>
+      <widget class="QPushButton" name="btn_ok">
+       <property name="text">
+        <string>ONAYLA</string>
+       </property>
+       <property name="styleSheet">
+        <string>background-color: #3a1500; color: #ffcc88; font-weight: bold; padding: 6px; border: 1px solid #8b4010; border-radius: 4px;</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QPushButton" name="btn_cancel">
+       <property name="text">
+        <string>İPTAL</string>
+       </property>
+       <property name="styleSheet">
+        <string>background-color: #1a1a0a; color: #888888; padding: 6px; border: 1px solid #4a1a0a; border-radius: 4px;</string>
+       </property>
+      </widget>
+     </item>
+
+    </layout>
+   </item>
+
+  </layout>
+ </widget>
+
+ <!-- Slider <-> SpinBox senkronizasyonu -->
+ <connections>
+  <connection>
+   <sender>slider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>spinbox</receiver>
+   <slot>setValue(int)</slot>
+  </connection>
+  <connection>
+   <sender>spinbox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>slider</receiver>
+   <slot>setValue(int)</slot>
+  </connection>
+  <connection>
+   <sender>btn_ok</sender>
+   <signal>clicked()</signal>
+   <receiver>TroopSelectionDialog</receiver>
+   <slot>accept()</slot>
+  </connection>
+  <connection>
+   <sender>btn_cancel</sender>
+   <signal>clicked()</signal>
+   <receiver>TroopSelectionDialog</receiver>
+   <slot>reject()</slot>
+  </connection>
+ </connections>
+
+</ui>

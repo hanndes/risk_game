@@ -6,7 +6,6 @@ from PyQt6.QtWidgets import QMainWindow
 from PyQt6.QtGui import QPixmap
 
 from ui.py_ui.ui_waiting_room import Ui_MainWindow as Ui_WaitingRoom
-from shared.constants import MessageTypes
 
 from PyQt6.QtCore import pyqtSignal
 

@@ -11,23 +11,23 @@ class RiskGameLogic:
         self.setup_initial_board()
 
     def setup_initial_board(self):
+
         regions = list(REGION_NEIGHBORS.keys())
+        random.shuffle(regions)
 
-        p2_target_region = regions[0]
-        p1_target_regions = regions[1:]
+        p1_regions = regions[:21]
+        p2_regions = regions[21:]
 
-        for r in p1_target_regions:
-            self.state.update_region(r, "player1", 5)
+        for r in p1_regions:
+            self.state.update_region(r, "player1", 1)
+        for r in p2_regions:
+            self.state.update_region(r, "player2", 1)
 
-        self.state.update_region(p2_target_region, "player2", 1)
-
-        self.state.unplaced_troops = {"player1": 10, "player2": 10}
+        self.state.unplaced_troops = {"player1": 19, "player2": 19}
 
         self.state.current_player = "player1"
-        self.state.phase = "ATTACK"
-        self.state.last_log = "TEST MODU: Player 1 kazanmaya çok yakın!"
-
-
+        self.state.phase = "DRAFT"
+        self.state.last_log = "Oyun başladı! Bölgeler rastgele dağıtıldı. Sıra Player 1'de."
 
     def process_action(self, client_id, action_data):
         if self.state.current_player != client_id:
@@ -290,7 +290,7 @@ class RiskGameLogic:
 
         return True, f"Faz {self.state.phase} olarak değişti."
 
-    # Sınıfın içine yeni bir metod olarak ekleyin
+    # Oyun bitme şartı kontrolü
     def _check_win_condition(self):
         owners = {data["owner"] for data in self.state.regions.values()}
         if len(owners) == 1:

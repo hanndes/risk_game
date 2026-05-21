@@ -1,61 +1,28 @@
-from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-                             QSlider, QSpinBox, QPushButton)
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QDialog
+from ui.py_ui.ui_troop_selection_dialog import Ui_TroopSelectionDialog
 
 
 class TroopSelectionDialog(QDialog):
     def __init__(self, region_name, max_troops, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Takviye Gönder")
-        self.setMinimumWidth(320)
+        self.ui = Ui_TroopSelectionDialog()
+        self.ui.setupUi(self)
 
-        self.setStyleSheet("background-color: #1f0800; color: #e8c090; font-family: 'Andale Mono';")
+        self.ui.info_label.setText(
+            f"{region_name} bölgesine takviye edilecek\nasker miktarını seçin:"
+        )
 
-        self.layout = QVBoxLayout(self)
+        self.ui.slider.setRange(1, max_troops)
+        self.ui.spinbox.setRange(1, max_troops)
 
-        self.info_label = QLabel(f"{region_name} bölgesine takviye edilecek\nasker miktarını seçin:", self)
-        self.layout.addWidget(self.info_label)
+        self.ui.slider.setValue(1)
+        self.ui.spinbox.setValue(1)
 
-        self.control_layout = QHBoxLayout()
+        self.ui.slider.valueChanged.connect(self.ui.spinbox.setValue)
+        self.ui.spinbox.valueChanged.connect(self.ui.slider.setValue)
 
-        self.slider = QSlider(Qt.Orientation.Horizontal, self)
-        self.slider.setMinimum(1)
-        self.slider.setMaximum(max_troops)
-        self.slider.setValue(1)
-
-        self.slider.setStyleSheet(
-            "QSlider::handle:horizontal { background: #8b1a1a; width: 15px; border-radius: 3px; }")
-
-        self.spinbox = QSpinBox(self)
-        self.spinbox.setMinimum(1)
-        self.spinbox.setMaximum(max_troops)
-        self.spinbox.setValue(1)
-        self.spinbox.setStyleSheet(
-            "background-color: #0d0500; color: #ff6644; font-size: 14px; font-weight: bold; border: 1px solid #4a1a0a;")
-
-        self.slider.valueChanged.connect(self.spinbox.setValue)
-        self.spinbox.valueChanged.connect(self.slider.setValue)
-
-        self.control_layout.addWidget(self.slider)
-        self.control_layout.addWidget(self.spinbox)
-        self.layout.addLayout(self.control_layout)
-
-        self.button_layout = QHBoxLayout()
-
-        self.btn_ok = QPushButton("ONAYLA", self)
-        self.btn_ok.setStyleSheet(
-            "background-color: #3a1500; color: #ffcc88; font-weight: bold; padding: 6px; border: 1px solid #8b4010; border-radius: 4px;")
-
-        self.btn_cancel = QPushButton("İPTAL", self)
-        self.btn_cancel.setStyleSheet(
-            "background-color: #1a1a0a; color: #888888; padding: 6px; border: 1px solid #4a1a0a; border-radius: 4px;")
-
-        self.btn_ok.clicked.connect(self.accept)
-        self.btn_cancel.clicked.connect(self.reject)
-
-        self.button_layout.addWidget(self.btn_ok)
-        self.button_layout.addWidget(self.btn_cancel)
-        self.layout.addLayout(self.button_layout)
+        self.ui.btn_ok.clicked.connect(self.accept)
+        self.ui.btn_cancel.clicked.connect(self.reject)
 
     def get_value(self):
-        return self.spinbox.value()
+        return self.ui.spinbox.value()

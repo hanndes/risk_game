@@ -3,7 +3,7 @@ import pickle
 import logging
 import threading
 from threading import Thread
-from typing import Optional, Callable
+from typing import Optional
 
 from shared.constants import MessageTypes
 from client.utils.config import setup_logging
@@ -23,7 +23,7 @@ class TCPClient:
         self.client_socket: Optional[socket.socket] = None
 
         self.signals = NetworkSignals()
-        server_ip, server_port = ("13.60.191.188", 5001)
+        server_ip, server_port = ("127.0.0.1", 5001)
 
         th = Thread(target=self.start_client, args=(server_ip, server_port))
         th.daemon = True
