@@ -18,8 +18,8 @@ Python ve PyQt6 ile geliştirilmiş, TCP soket altyapısı üzerine kurulu 2 ki�
 
 ## Gereksinimler
 
-- Python 3.10+
-- PyQt6 6.10.2
+- Python 3.9+
+- PyQt6
 
 ```bash
 pip install -r requirements.txt
