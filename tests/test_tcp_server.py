@@ -5,7 +5,7 @@ import time
 import pytest
 
 from server.tcp_server import RiskServer
-from shared.constants import MessageTypes
+from shared.constants import MessageTypes, REGION_NEIGHBORS
 
 HOST = "127.0.0.1"
 ZAMAN_ASIMI = 5
@@ -170,3 +170,66 @@ def test_ger08_ani_baglanti_kapaninca_oda_temizlenir_ve_rakibe_haber_gider(mac):
 
     assert b.al() == {"type": MessageTypes.OPPONENT_LEFT}
     assert bekle(lambda: server.active_rooms == {})
+
+
+# --- GER-09: Saldırı sonucu ve oyun bitişi ağ üzerinden ---
+
+def oda_durumunu_hazirla(server, bolgeler, faz="ATTACK"):
+    """Sunucudaki odanın oyun durumunu kurar: {bolge: (sahip, asker)}, geri kalan player2'nin."""
+    oda = next(iter(server.active_rooms.values()))
+    durum = oda.game_logic.state
+    for r in REGION_NEIGHBORS:
+        durum.update_region(r, "player2", 1)
+    for r, (sahip, asker) in bolgeler.items():
+        durum.update_region(r, sahip, asker)
+    durum.current_player = "player1"
+    durum.phase = faz
+
+
+def zarlari_sabitle(monkeypatch, degerler):
+    it = iter(degerler)
+    monkeypatch.setattr("server.game_logic.random.randint", lambda a, b: next(it))
+
+
+def test_ger09_saldiri_sonucu_ve_yeni_durum_iki_oyuncuya_yayinlanir(mac, monkeypatch):
+    server, a, b, _ = mac
+    oda_durumunu_hazirla(server, {"alaska": ("player1", 4), "kamchatka": ("player2", 2)})
+    zarlari_sabitle(monkeypatch, [6, 1, 1, 3, 3])  # saldıran 6,1,1 - savunan 3,3: ikisi de 1 kayıp
+    a.gonder({"action": "ATTACK", "from": "alaska", "to": "kamchatka"})
+
+    for oyuncu in (a, b):
+        sonuc = oyuncu.al()
+        assert sonuc["type"] == "BATTLE_RESULT"
+        assert sonuc["status"] == "ONGOING"
+        assert (sonuc["att_loss"], sonuc["def_loss"]) == (1, 1)
+        yeni = oyuncu.al()  # sonuçtan sonra güncel oyun durumu gelir
+        assert yeni.regions["alaska"]["troops"] == 3
+        assert yeni.regions["kamchatka"]["troops"] == 1
+
+
+def test_ger09_tum_bolgeler_alininca_oyun_biter_ve_kazanan_duyurulur(mac, monkeypatch):
+    server, a, b, _ = mac
+    oda_durumunu_hazirla(server, {r: ("player1", 1) for r in REGION_NEIGHBORS}
+                         | {"mongolia": ("player1", 4), "japan": ("player2", 1)})
+    zarlari_sabitle(monkeypatch, [6, 6, 6, 1])
+    a.gonder({"action": "ATTACK", "from": "mongolia", "to": "japan"})
+
+    for oyuncu in (a, b):
+        sonuc = oyuncu.al()
+        assert sonuc["status"] == "GAME_OVER"
+        assert oyuncu.al() == {"type": "GAME_OVER", "winner": "player1"}
+        son_durum = oyuncu.al()
+        assert son_durum.phase == "GAME_OVER"
+
+
+# --- GER-10: Lobi ---
+
+@pytest.mark.xfail(strict=True, reason="BUG: lobide bekleyen oyuncu bağlantıyı kapatınca kuyruktan silinmiyor "
+                                       "(dinleme thread'i sadece eşleşmeden sonra başlıyor), "
+                                       "sonraki oyuncu hayalet oyuncuyla eşleşebilir")
+def test_ger10_lobiden_ayrilan_oyuncu_kuyruktan_silinir(sunucu, istemciler):
+    server, port = sunucu
+    a = baglan(istemciler, port, "Ayse")
+    assert bekle(lambda: len(server.waiting_players) == 1)
+    a.kapat()
+    assert bekle(lambda: server.waiting_players == [], sure=2)
