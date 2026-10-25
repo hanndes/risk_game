@@ -179,6 +179,9 @@ class RiskGameLogic:
         to_region = data["to"]
         amount = data["amount"]
 
+        if amount < 0:
+            return False, "Kaydırılacak asker miktarı negatif olamaz."
+
         if self.state.regions[from_region]["owner"] != client_id or self.state.regions[to_region]["owner"] != client_id:
             return False, "Bölgeler size ait değil."
 
@@ -195,6 +198,9 @@ class RiskGameLogic:
         from_region = data["from"]
         to_region = data["to"]
 
+        if self.state.regions[from_region]["owner"] != client_id:
+            return False, "Sadece kendi bölgenizden saldırı hazırlığı yapabilirsiniz."
+
         attacker_total = self.state.regions[from_region]["troops"]
         defender_total = self.state.regions[to_region]["troops"]
 
@@ -208,6 +214,9 @@ class RiskGameLogic:
         from_region = data["from"]
         to_region = data["to"]
         amount = data["amount"]
+
+        if amount < 0:
+            return False, "Taşınacak asker miktarı negatif olamaz."
 
         if self.state.regions[from_region]["owner"] != client_id or self.state.regions[to_region]["owner"] != client_id:
             return False, "Sadece kendi bölgeleriniz arasında asker taşıyabilirsiniz."
@@ -295,7 +304,7 @@ class RiskGameLogic:
             self.state.phase = "FORTIFY"
             self.state.last_log = "Saldırı bitti, KUVVETLERİ TAŞIMA fazına geçildi."
         elif self.state.phase == "FORTIFY":
-            return True, "Sıra diğer oyuncuya geçti."
+            return False, "Son fazdasınız. Turu bitirmek için END_TURN gönderin."
 
         return True, f"Faz {self.state.phase} olarak değişti."
 
