@@ -70,6 +70,9 @@ class RiskGameLogic:
         region = data["region"]
         amount = data.get("amount", 1)
 
+        if amount < 1:
+            return False, "Takviye miktarı en az 1 olmalı."
+
         if self.state.regions[region]["owner"] != player_id:
             return False, "Sadece kendi bölgelerinize asker yerleştirebilirsiniz."
 
@@ -90,6 +93,12 @@ class RiskGameLogic:
     def _handle_attack(self, client_id, data):
         from_region = data["from"]
         to_region = data["to"]
+
+        if self.state.regions[from_region]["owner"] != client_id:
+            return False, "Sadece kendi bölgenizden saldırabilirsiniz."
+
+        if self.state.regions[to_region]["owner"] == client_id:
+            return False, "Kendi bölgenize saldıramazsınız."
 
         attacker_total = self.state.regions[from_region]["troops"]
         defender_total = self.state.regions[to_region]["troops"]

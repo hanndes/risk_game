@@ -21,12 +21,11 @@ class GameRoom:
 
 
 class RiskServer:
-    def __init__(self):
+    def __init__(self, server_ip="", server_port=5001):
         self.waiting_players = []
         self.active_rooms = {}
         self.server_socket = None
 
-        server_ip, server_port = ("", 5001)
         th = Thread(target=self.start_server, args=(server_ip, server_port))
         th.start()
 
@@ -109,6 +108,7 @@ class RiskServer:
 
                 if not message:
                     logging.info(f"{player_id} bağlantısı sonlandı (boş veri geldi).")
+                    self.close_connection(client_socket)
                     break
 
                 decoded_message = pickle.loads(message)

@@ -266,11 +266,9 @@ def test_ger05_tum_bolgeler_ele_gecirilince_oyun_biter(game, monkeypatch):
     assert game.state.phase == "GAME_OVER"
 
 
-# --- Bilinen hatalar (xfail): kod bugün bu kuralları uygulamıyor ---
-# strict=True: hata düzeltilirse bu testler "XPASS" ile kırılır, o zaman xfail satırını sil.
+# --- Sunucu doğrulaması: istemciye güvenme (testle bulunan ve düzeltilen hatalar) ---
 
-@pytest.mark.xfail(strict=True, reason="BUG: _handle_attack kendi bölgene saldırıyı engellemiyor")
-def test_bug_kendi_bolgene_saldirilamaz(game):
+def test_ger02_kendi_bolgene_saldirilamaz(game):
     hepsini_ata(game, P1)
     game.state.update_region("alaska", P1, 4)
     game.state.current_player = P1
@@ -279,16 +277,17 @@ def test_bug_kendi_bolgene_saldirilamaz(game):
     assert ok is False
 
 
-@pytest.mark.xfail(strict=True, reason="BUG: _handle_attack saldıranın kaynak bölgeye sahip olduğunu kontrol etmiyor")
-def test_bug_rakibin_bolgesinden_saldirilamaz(game):
+def test_ger02_rakibin_bolgesinden_saldirilamaz(game):
     saldiri_hazirla(game, "alaska", "alberta", 4, 1)
     game.state.update_region("alaska", P2, 4)  # kaynak bölge rakibin
     ok, _ = saldir(game, "alaska", "alberta")
     assert ok is False
 
 
-@pytest.mark.xfail(strict=True, reason="BUG: _handle_draft negatif asker miktarını kabul ediyor")
-def test_bug_negatif_takviye_reddedilmeli(game):
+@pytest.mark.parametrize("miktar", [-3, 0])
+def test_ger03_gecersiz_takviye_miktari_reddedilir(game, miktar):
     bolge = kendi_bolgem(game)
-    ok, _ = game.process_action(P1, {"action": "DRAFT", "region": bolge, "amount": -3})
+    ok, _ = game.process_action(P1, {"action": "DRAFT", "region": bolge, "amount": miktar})
     assert ok is False
+    assert game.state.unplaced_troops[P1] == 19  # yedek asker değişmemeli
+    assert game.state.regions[bolge]["troops"] == 1
