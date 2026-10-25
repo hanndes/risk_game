@@ -1,5 +1,7 @@
 # Risk Oyunu — Çok Oyunculu Ağ Tabanlı Masaüstü Uygulaması
 
+![Tests](https://github.com/hanndes/risk_game/actions/workflows/tests.yml/badge.svg)
+
 Python ve PyQt6 ile geliştirilmiş, TCP soket altyapısı üzerine kurulu 2 kişilik Risk masa oyunu.
 
 ---
@@ -32,7 +34,7 @@ pip install -r requirements.txt
 ### 1. Sunucuyu Başlat
 
 ```bash
-python server/server_main.py
+python -m server.server_main
 ```
 
 Sunucu `5001` portunda dinlemeye başlar ve 2 oyuncu bağlanınca otomatik eşleştirir.
@@ -45,6 +47,26 @@ python client_main.py
 ```
 
 Giriş ekranından bir kullanıcı adı gir ve sunucuya bağlan. İki oyuncu da bağlandığında oyun otomatik başlar.
+
+---
+
+## Testler
+
+Testler `pytest` ile yazılmıştır, arayüz (PyQt6) gerektirmez ve her `push` işleminde GitHub Actions ile otomatik çalışır.
+
+```bash
+pip install pytest
+pytest -v
+```
+
+Kapsama raporu için:
+
+```bash
+pip install pytest-cov
+pytest --cov=server --cov=shared --cov-report=term-missing
+```
+
+Test paketi oyun kurallarını, harita verisini ve gerçek TCP soketleriyle sunucuyu (lobi, eşleşme, hamle yayını, bağlantı kopması) kapsar.
 
 ---
 
@@ -76,9 +98,13 @@ risk_game/
 │   └── assets/
 │       └── images/         # Harita, zar ve arka plan görselleri
 │
-└── shared/
-    ├── game_state.py       # Paylaşılan oyun durumu modeli
-    └── constants.py        # Bölge komşulukları, kıta tanımları, mesaj tipleri
+├── shared/
+│   ├── game_state.py       # Paylaşılan oyun durumu modeli
+│   └── constants.py        # Bölge komşulukları, kıta tanımları, mesaj tipleri
+│
+├── tests/                  # pytest testleri
+└── .github/workflows/
+    └── tests.yml           # GitHub Actions: her push'ta testleri çalıştırır
 ```
 
 ---
